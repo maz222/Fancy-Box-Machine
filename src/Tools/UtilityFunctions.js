@@ -1,5 +1,3 @@
-import { AppContext } from "../AppData/AppContext";
-
 /*
 takes a raw pixel position and normalizes it based on the image dimensions
 x:0 = left most edge of the image, x:1 = right most edge
@@ -18,8 +16,33 @@ export function getNormalizedPosition(pixelPos, canvas, appContext) {
 export function getRawImagePosition(normPos, canvas, appContext) {
     //const canvasRect = canvas.getBoundingClientRect();
     const image = appContext.image;
-    var imageRaw = {x:image.width*normPos.x,y:image.height*normPos.y};
+    var imageRaw = {x:Math.floor(image.width*normPos.x),y:Math.floor(image.height*normPos.y)};
     //canvasNorm.x *= canvasRect.width;
     //canvasNorm.y *= canvasRect.height;
     return imageRaw;
+}
+
+//get general form of a line given two points along the line
+export function getGeneralForm(p1, p2) {
+    const slopeNumerator = p2.y-p1.y;
+    const slopeDenominator = p2.x-p1.x;
+    const slope = slopeNumerator/slopeDenominator;
+    //y=mx+(b)
+    const yIntercept = p1.y-(slope*p1.x);
+    //console.log(`Line : [${p1.x},${p1.y}],[${p2.x},${p2.y}] - slope=${slopeNumerator}/${slopeDenominator} b=${yIntercept}`);
+    //console.log(`A:${slopeNumerator}, B:${-slopeDenominator}, C:${slopeDenominator*yIntercept}`);
+    return{
+        A:slopeNumerator,
+        B:-slopeDenominator,
+        C:slopeDenominator*yIntercept
+    };
+}
+
+//return the distance between a point and a line
+export function getPointDistanceToLine(p1,l1) {
+    //console.log(`Point: [${p1.x},${p1.y}]`);
+    var generalForm = getGeneralForm(l1[0],l1[1]);
+    var distance = Math.abs(generalForm.A*p1.x + generalForm.B*p1.y + generalForm.C)/Math.sqrt(Math.pow(generalForm.A,2)+Math.pow(generalForm.B,2));
+    //console.log(`Distance: ${distance}`);
+    return distance;
 }
