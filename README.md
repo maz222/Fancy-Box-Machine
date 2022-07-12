@@ -1,2 +1,2 @@
-## Image Segmentation Editor / Generator (in progress)
+Image Segmentation Editor / Generator (in progress)
 
