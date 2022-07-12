@@ -8,6 +8,8 @@ import { AppContext } from '../AppData/AppContext';
 import {ZoomTool, MoveTool} from './Tools.js';
 import { PointTool } from './AddPointTool.js';
 
+import { DebugPositionTool } from './DebugPointTool';
+
 const Bar = styled.div`
     display:grid;
     grid-template-columns: 50px 50px;
@@ -38,7 +40,8 @@ function ToolBar() {
         {id:"zoomIn", onClick:() => {appContext.setTool(new ZoomTool(+.1))}, child:<i class="fas fa-search-plus"></i>},
         {id:"pen", onClick:() => {appContext.setTool(new PointTool())}, child:<i class="fas fa-pen"></i>},
         {id:"movePoint", onClick:() => {}, child:<i class="fas fa-draw-polygon"></i>},
-        {id:"moveImage", onClick:() => {appContext.setTool(new MoveTool())}, child:<i class="fas fa-hand-pointer"></i>}
+        {id:"moveImage", onClick:() => {appContext.setTool(new MoveTool())}, child:<i class="fas fa-hand-pointer"></i>},
+        {id:"debugPoint", onClick:() => {appContext.setTool(new DebugPositionTool())}, child:<i class="fas fa-hand-pointer"></i>}
     ];
     return(
         <Bar>

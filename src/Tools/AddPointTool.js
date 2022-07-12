@@ -4,7 +4,6 @@ import ImageLayer from '../AppData/ImageLayer.js';
 import { getRawImagePosition, getPointDistanceToLine, getNormalizedPosition } from './UtilityFunctions.js';
 
 import { AppSettings } from '../AppData/AppSettings.js';
-import { scryRenderedDOMComponentsWithClass } from 'react-dom/cjs/react-dom-test-utils.production.min.js';
 
 export class PointTool extends SmartCursorTool {
     constructor() {
@@ -68,17 +67,20 @@ export class PointTool extends SmartCursorTool {
                 const pointDistance = Math.sqrt(Math.pow(rawPointPos.x-rawLinePos1.x,2)+Math.pow(rawPointPos.y-rawLinePos1.y,2));
                 //b = sqrt(c^2 - a^2), distance moved down the line to reach the intersection point
                 const lineTravel = Math.sqrt(Math.pow(pointDistance,2) - Math.pow(lineDistance,2));
-                var lineXSlope = rawLinePos2.x - rawLinePos1.x;
-                var lineYSlope = rawLinePos2.y - rawLinePos1.y;
-                const gcd = Math.max(lineXSlope,lineYSlope);
-                lineXSlope /= gcd;
-                lineYSlope /= gcd;
-                console.log([lineTravel, lineXSlope, lineYSlope, lineDistance, pointDistance]);
-                const intersectionPoint = {x:Math.floor(rawLinePos1.x+lineXSlope*lineTravel), y:Math.floor(rawLinePos1.y+lineYSlope*lineTravel)};
-                console.log(`Line Start: [${rawLinePos1.x},${rawLinePos1.y}], Line End: [${rawLinePos2.x},${rawLinePos2.y}] Intersection: [${intersectionPoint.x},${intersectionPoint.y}]` );
+                const normalizedLineVector = [rawLinePos2.x-rawLinePos1.x,rawLinePos2.y-rawLinePos1.y];
+                const vecMagnitude = Math.sqrt(Math.pow(normalizedLineVector[0],2) + Math.pow(normalizedLineVector[1],2));
+                const unitVector = [normalizedLineVector[0]/vecMagnitude, normalizedLineVector[1]/vecMagnitude];
+                const intersectionPoint = {x:Math.floor(rawLinePos1.x+unitVector[0]*lineTravel), y:Math.floor(rawLinePos1.y+unitVector[1]*lineTravel)};
+                //console.log(intersectionPoint);
+                if(intersectionPoint.x >= Math.min(rawLinePos1.x,rawLinePos2.x) && intersectionPoint.x <= Math.max(rawLinePos1.x,rawLinePos2.x)) {
+                    if(intersectionPoint.y >= Math.min(rawLinePos1.y,rawLinePos2.y) && intersectionPoint.y <= Math.max(rawLinePos1.y,rawLinePos2.y)) {
+                        //console.log(`Raw Cursor: [${rawPointPos.x},${rawPointPos.y}]`)
+                        //console.log(`Line Start: [${rawLinePos1.x},${rawLinePos1.y}], Line End: [${rawLinePos2.x},${rawLinePos2.y}] Intersection: [${intersectionPoint.x},${intersectionPoint.y}]` );
+                        //console.log(`Unit Vector: [${1/unitVector[0]},${1/unitVector[1]}]`);
+                        return {intersection:intersectionPoint,prevPointIndex:i};
+                    }
+                }
                 //return getNormalizedPosition(intersectionPoint,canvas,appContext);
-                return {intersection:intersectionPoint,prevPointIndex:i};
-
             }
         }
         return null;
@@ -93,6 +95,7 @@ export class PointTool extends SmartCursorTool {
         const overlappedPointIndex = this.checkForOverlap(this.normalizedCursor,currentLayer, canvas, appContext);
         if(overlappedPointIndex !== null) {
             if(currentLayer.points.length - overlappedPointIndex > 2) {
+                console.log("on point intersection");
                 currentLayer.closePolygon(overlappedPointIndex);
                 appContext.setLayerManager(appContext.layerManager.updateLayer(currentLayer.clone(),appContext.currentLayer));
                 this.addNewLayer(appContext);
@@ -103,19 +106,14 @@ export class PointTool extends SmartCursorTool {
         else {
             const lineIntersection = this.checkForOnLine(this.normalizedCursor, currentLayer, canvas, appContext);
             if(lineIntersection !== null && currentLayer.points.length-lineIntersection.prevPointIndex >= 2) {
+                console.log("online intersection");
                 const normalizedIntersection = getNormalizedPosition(lineIntersection.intersection,canvas,appContext);
-                console.log(lineIntersection.intersection);
-                console.log(normalizedIntersection);
-                const rawCursor = getRawImagePosition(this.normalizedCursor,canvas,appContext);
-                console.log(rawCursor);
-                console.log({x:e.pageX, y:e.pageY});
-                console.log(this.normalizedCursor);
-                console.log(getNormalizedPosition(rawCursor,canvas,appContext));
-                console.log(getNormalizedPosition({x:e.pageX, y:e.pageY}, canvas, appContext));
                 currentLayer.points[lineIntersection.prevPointIndex].position = normalizedIntersection;
                 currentLayer.closePolygon(lineIntersection.prevPointIndex);
+                //console.log(currentLayer.points);
                 appContext.setLayerManager(appContext.layerManager.updateLayer(currentLayer.clone(),appContext.currentLayer));
                 this.addNewLayer(appContext);
+                return true;
             }
         }
         const layerColor = currentLayer.color;

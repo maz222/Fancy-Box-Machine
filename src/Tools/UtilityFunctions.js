@@ -14,12 +14,13 @@ export function getNormalizedPosition(pixelPos, canvas, appContext) {
 }
 
 export function getRawImagePosition(normPos, canvas, appContext) {
-    //const canvasRect = canvas.getBoundingClientRect();
-    const image = appContext.image;
-    var imageRaw = {x:Math.floor(image.width*normPos.x),y:Math.floor(image.height*normPos.y)};
-    //canvasNorm.x *= canvasRect.width;
-    //canvasNorm.y *= canvasRect.height;
-    return imageRaw;
+    const rect = canvas.getBoundingClientRect();
+    const imageSize = {x:appContext.image.width*appContext.zoom.amount, y:appContext.image.height*appContext.zoom.amount};
+    const imageCenter = {x:canvas.width/2+appContext.zoom.offset[0]-imageSize.x/2, y:canvas.height/2-appContext.zoom.offset[1]-imageSize.y/2};
+
+    const rawX = normPos.x*imageSize.x+rect.left+imageCenter.x;
+    const rawY = normPos.y*imageSize.y+rect.top+imageCenter.y;
+    return {x:rawX, y:rawY};
 }
 
 //get general form of a line given two points along the line

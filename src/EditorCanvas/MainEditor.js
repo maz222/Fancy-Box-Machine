@@ -136,7 +136,7 @@ function EditorCanvas(props) {
         if(frameImage != null && shaderDict != null) {
             setRedrawCanvas(true);
         }
-    },[appContext.layerManager, appContext.zoom, appContext.brightness, appContext.contrast]);
+    },[appContext.layerManager, appContext.zoom, appContext.brightness, appContext.contrast, appContext.tool]);
 
     useEffect(() => {
         if(redrawCanvas) {renderCanvas();}
