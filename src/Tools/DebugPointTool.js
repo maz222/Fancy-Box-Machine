@@ -19,26 +19,29 @@ export class DebugPositionTool extends SmartCursorTool {
     handleMouseDown(e, canvas, appContext, clamped=true) {
         this.updatePosition(e, canvas, appContext, clamped);
         console.log(appContext.layerManager.layers);
-        console.log("------");
-        console.log(`Event Position: [${e.pageX},${e.pageY}]`);
-        console.log(`Normalized Position: [${this.normalizedCursor.x},${this.normalizedCursor.y}]`)
+        var debugStrings = [];
+        debugStrings.push("------");
+        debugStrings.push(`Event Position: [${e.pageX},${e.pageY}]`);
+        debugStrings.push(`Normalized Position: [${this.normalizedCursor.x},${this.normalizedCursor.y}]`);
         const rawPos = getRawImagePosition(this.normalizedCursor,canvas,appContext);
-        console.log(`Raw From Normalized: [${rawPos.x},${rawPos.y}]`);
-        console.log("------");
+        debugStrings.push(`Raw From Normalized: [${rawPos.x},${rawPos.y}]`);
+        debugStrings.push("------");
         const currLayer = appContext.layerManager.layers[appContext.currentLayer];
         const pointIndex = this.checkForOverlap(this.normalizedCursor, currLayer, canvas, appContext);
         if(pointIndex !== null) {
             const point = appContext.layerManager.layers[appContext.currentLayer].points[pointIndex];
-            console.log(`Point Count: ${currLayer.points.length}`);
-            console.log(`Point Position: [${point.position.x},${point.position.y}]`);
+            debugStrings.push(`Point Count: ${currLayer.points.length}`);
+            debugStrings.push(`Point Position: [${point.position.x},${point.position.y}]`);
             const pointRaw = getRawImagePosition(point.position, canvas, appContext);
-            console.log(`Point Raw: [${pointRaw.x},${pointRaw.y}]`);
+            debugStrings.push(`Point Raw: [${pointRaw.x},${pointRaw.y}]`);
             if(point.lineTo !== null) {
-                console.log(`LineTo: [${point.lineTo.position.x},${point.lineTo.position.y}]`);
+                debugStrings.push(`LineTo: [${point.lineTo.position.x},${point.lineTo.position.y}]`);
                 const lineToRaw = getRawImagePosition(point.lineTo.position, canvas, appContext);
-                console.log(`LineTo Raw: [${lineToRaw.x},${lineToRaw.y}]`);
+                debugStrings.push(`LineTo Raw: [${lineToRaw.x},${lineToRaw.y}]`);
             }        
-            console.log("------");
+            debugStrings.push("------");
         }
+        console.log(debugStrings);
+        appContext.setDebugText(debugStrings);
     }
 }

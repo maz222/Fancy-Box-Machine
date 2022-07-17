@@ -9,6 +9,8 @@ import MainEditor from '../EditorCanvas/MainEditor';
 
 import { LayerManager } from './ImageLayer';
 
+import { DebugConsole } from '../DebugConsole';
+
 export const AppContext = React.createContext({})
 const ContextProvider = AppContext.Provider;
 
@@ -60,6 +62,8 @@ const ContextContainer = (props) => {
     const [tool, setTool] = useState(new Tool(AppContext));
     const [image, setImage] = useState(null);
     const [canvasSize, setCanvasSize] = useState(null);
+    
+    const [debugText, setDebugText] = useState(["testing"]);
     return(
         <div style={{width:"100%",height:"100%"}}>
             <ContextProvider value={{
@@ -70,8 +74,10 @@ const ContextContainer = (props) => {
                 canvasSize:canvasSize,setCanvasSize:setCanvasSize,
                 layerManager:layerManager,setLayerManager:setLayerManager,
                 currentLayer:currentLayer, setCurrentLayer:setCurrentLayer,
-                tool:tool,setTool:setTool
+                tool:tool,setTool:setTool,
+                debugText:debugText,setDebugText:setDebugText
             }}>
+                {debugText.length > 0 ? <DebugConsole debugText={debugText} setDebugText={setDebugText} /> : null}
                 <Banner>Box Buddy</Banner>
                 <TopMenu />
                 <Editor>
