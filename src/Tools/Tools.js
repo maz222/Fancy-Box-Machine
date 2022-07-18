@@ -21,8 +21,8 @@ export class BaseTool {
     handleMouseMove(e, canvas, appContext) {
         return false;
     }
-    checkPointsForRender(pointArray) {
-        return pointArray;
+    checkLayerForRender(layer) {
+        return layer;
     }
 }
 
@@ -50,7 +50,7 @@ export class ZoomTool extends BaseTool {
 export class MoveTool extends BaseTool {
     constructor() {
         super();
-        this.id="move";
+        this.id="moveImage";
         this.startLocation = null;
         this.lastLocation = null;
         this.cursor = "grab";

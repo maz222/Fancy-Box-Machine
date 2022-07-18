@@ -9,11 +9,13 @@ import {ZoomTool, MoveTool} from './Tools.js';
 import { PointTool } from './AddPointTool.js';
 
 import { DebugPositionTool } from './DebugPointTool';
+import DeletePointTool from './DeletePointTool';
+import MovePointTool from './MovePointTool';
 
 const Bar = styled.div`
     display:grid;
     grid-template-columns: 50px 50px;
-    grid-template-rows: repeat(5, 50px);
+    grid-template-rows: repeat(6, 50px);
     padding:5px;
     background-color:white;
     width:calc(50px * 2 + 10);
@@ -39,9 +41,10 @@ function ToolBar() {
         {id:"zoomOut", onClick:() => {appContext.setTool(new ZoomTool(-.1))}, child:<i class="fas fa-search-minus"></i>},
         {id:"zoomIn", onClick:() => {appContext.setTool(new ZoomTool(+.1))}, child:<i class="fas fa-search-plus"></i>},
         {id:"pen", onClick:() => {appContext.setTool(new PointTool())}, child:<i class="fas fa-pen"></i>},
-        {id:"movePoint", onClick:() => {}, child:<i class="fas fa-draw-polygon"></i>},
+        {id:"deletePoint", onClick:() => {appContext.setTool(new DeletePointTool())}, child:<i class="fas fa-minus"></i>},
+        {id:"movePoint", onClick:() => {appContext.setTool(new MovePointTool())}, child:<i class="fas fa-draw-polygon"></i>},
         {id:"moveImage", onClick:() => {appContext.setTool(new MoveTool())}, child:<i class="fas fa-hand-pointer"></i>},
-        {id:"debugPoint", onClick:() => {appContext.setTool(new DebugPositionTool())}, child:<i class="fas fa-hand-pointer"></i>}
+        {id:"debugPoint", onClick:() => {appContext.setTool(new DebugPositionTool())}, child:<i class="fas fa-hand-pointer"></i>},
     ];
     return(
         <Bar>

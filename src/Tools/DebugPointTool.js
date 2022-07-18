@@ -30,7 +30,7 @@ export class DebugPositionTool extends SmartCursorTool {
         const pointIndex = this.checkForOverlap(this.normalizedCursor, currLayer, canvas, appContext);
         if(pointIndex !== null) {
             const point = appContext.layerManager.layers[appContext.currentLayer].points[pointIndex];
-            debugStrings.push(`Point Count: ${currLayer.points.length}`);
+            debugStrings.push(`Point Index: ${pointIndex}`);
             debugStrings.push(`Point Position: [${point.position.x},${point.position.y}]`);
             const pointRaw = getRawImagePosition(point.position, canvas, appContext);
             debugStrings.push(`Point Raw: [${pointRaw.x},${pointRaw.y}]`);

@@ -8,7 +8,7 @@ import { AppSettings } from '../AppData/AppSettings.js';
 export class PointTool extends SmartCursorTool {
     constructor() {
         super();
-        this.id="point";
+        this.id="addPoint";
         this.cursor = "crosshair";
     }
     reset() {
@@ -17,8 +17,6 @@ export class PointTool extends SmartCursorTool {
 
     handleMouseMove(e, canvas, appContext) {
         super.handleMouseMove(e, canvas,appContext);
-        //if(appContext.layerManager.layers.length > 0 && appContext.layerManager.layers[appContext.currentLayer].points.length > 0) {
-        //}
         return true;
     }
     handleMouseUp(e, canvas, appContext) {
@@ -40,51 +38,6 @@ export class PointTool extends SmartCursorTool {
         currLayer.addPoint(newPoint);
         appContext.setLayerManager(appContext.layerManager.updateLayer(currLayer,appContext.currentLayer))
     }
-    //Given a normalized point, check all the points in a layer to see if the normalized point overlaps. return the *index* of the found point within the layer
-    checkForOverlap(position, layer, canvas, appContext) {
-        const rawPos =  getRawImagePosition(position, canvas, appContext);
-        const hitboxRadius = AppSettings.pointHitboxRadius;
-        for(var p in layer.points) {
-            const lp = getRawImagePosition(layer.points[p].position,canvas,appContext);
-            const distSqrd = Math.sqrt(Math.pow((rawPos.x-lp.x),2) + Math.pow((rawPos.y-lp.y),2));
-            if(distSqrd <= hitboxRadius) {
-                return p;
-            }
-        }
-        return null;
-    }
-    //optimize by checking if point is within rectangle hitbox created by two line points - avoid distance formula
-    checkForOnLine(position, layer, canvas, appContext) {
-        //console.log("----");
-        const rawPointPos =  getRawImagePosition(position,canvas,appContext);
-        for(var i=0; i<layer.points.length-1; i++) {
-            const rawLinePos1 = getRawImagePosition(layer.points[i].position,canvas,appContext);
-            const rawLinePos2 = getRawImagePosition(layer.points[i+1].position,canvas,appContext);
-            //distance between the point and the layer line - a
-            var lineDistance = getPointDistanceToLine(rawPointPos,[rawLinePos1,rawLinePos2]);
-            if(lineDistance <= AppSettings.lineHitboxRadius) {
-                //distance between the point and one of the line points - c (hypotenuse)
-                const pointDistance = Math.sqrt(Math.pow(rawPointPos.x-rawLinePos1.x,2)+Math.pow(rawPointPos.y-rawLinePos1.y,2));
-                //b = sqrt(c^2 - a^2), distance moved down the line to reach the intersection point
-                const lineTravel = Math.sqrt(Math.pow(pointDistance,2) - Math.pow(lineDistance,2));
-                const normalizedLineVector = [rawLinePos2.x-rawLinePos1.x,rawLinePos2.y-rawLinePos1.y];
-                const vecMagnitude = Math.sqrt(Math.pow(normalizedLineVector[0],2) + Math.pow(normalizedLineVector[1],2));
-                const unitVector = [normalizedLineVector[0]/vecMagnitude, normalizedLineVector[1]/vecMagnitude];
-                const intersectionPoint = {x:Math.floor(rawLinePos1.x+unitVector[0]*lineTravel), y:Math.floor(rawLinePos1.y+unitVector[1]*lineTravel)};
-                //console.log(intersectionPoint);
-                if(intersectionPoint.x >= Math.min(rawLinePos1.x,rawLinePos2.x) && intersectionPoint.x <= Math.max(rawLinePos1.x,rawLinePos2.x)) {
-                    if(intersectionPoint.y >= Math.min(rawLinePos1.y,rawLinePos2.y) && intersectionPoint.y <= Math.max(rawLinePos1.y,rawLinePos2.y)) {
-                        //console.log(`Raw Cursor: [${rawPointPos.x},${rawPointPos.y}]`)
-                        //console.log(`Line Start: [${rawLinePos1.x},${rawLinePos1.y}], Line End: [${rawLinePos2.x},${rawLinePos2.y}] Intersection: [${intersectionPoint.x},${intersectionPoint.y}]` );
-                        //console.log(`Unit Vector: [${1/unitVector[0]},${1/unitVector[1]}]`);
-                        return {intersection:intersectionPoint,prevPointIndex:i};
-                    }
-                }
-                //return getNormalizedPosition(intersectionPoint,canvas,appContext);
-            }
-        }
-        return null;
-    }
     handleMouseDown(e, canvas, appContext) {
         super.handleMouseDown(e, canvas, appContext);
         if(appContext.layerManager.layers.length == 0) {
@@ -92,7 +45,7 @@ export class PointTool extends SmartCursorTool {
             return true;
         }
         const currentLayer = appContext.layerManager.layers[appContext.currentLayer];
-        const overlappedPointIndex = this.checkForOverlap(this.normalizedCursor,currentLayer, canvas, appContext);
+        const overlappedPointIndex = currentLayer.findEndpoint(this.normalizedCursor, canvas, appContext);
         if(overlappedPointIndex !== null) {
             if(currentLayer.points.length - overlappedPointIndex > 2) {
                 console.log("on point intersection");
@@ -104,7 +57,7 @@ export class PointTool extends SmartCursorTool {
             return false;
         }
         else {
-            const lineIntersection = this.checkForOnLine(this.normalizedCursor, currentLayer, canvas, appContext);
+            const lineIntersection = currentLayer.findPointOnLine(this.normalizedCursor, canvas, appContext);
             if(lineIntersection !== null && currentLayer.points.length-lineIntersection.prevPointIndex >= 2) {
                 console.log("online intersection");
                 const normalizedIntersection = getNormalizedPosition(lineIntersection.intersection,canvas,appContext);
@@ -121,17 +74,17 @@ export class PointTool extends SmartCursorTool {
         this.addPointToLayer(newPoint, appContext);
         return true;
     }
-    checkPointsForRender(pointArray) {
-        if(pointArray.length > 0) {
-            const color = pointArray[pointArray.length-1].color;
-            pointArray.push(new PointNode(this.normalizedCursor,color));
-            pointArray[pointArray.length-2].setNextNode(pointArray[pointArray.length-1].position,color);
+    checkLayerForRender(layer) {
+        if(layer.points.length > 0) {
+            const color = layer.points[layer.points.length-1].color;
+            layer.points.push(new PointNode(this.normalizedCursor,color));
+            layer.points[layer.points.length-2].setNextNode(layer.points[layer.points.length-1].position,color);
         }
         else {
             const white = [255,255,255];
-            pointArray.push(new PointNode(this.normalizedCursor,white));
+            layer.points.push(new PointNode(this.normalizedCursor,white));
         }
-        return pointArray;
+        return layer;
     }
     render() {
         return;

@@ -97,7 +97,8 @@ function EditorCanvas(props) {
             if(currLayer.visibility) {
                 if(l == appContext.currentLayer) {
                     var clonedLayer = currLayer.clone();
-                    currPoints = appContext.tool.checkPointsForRender(clonedLayer.points);
+                    clonedLayer = appContext.tool.checkLayerForRender(clonedLayer);
+                    currPoints = clonedLayer.points;
                 }
                 drawPoints(appContext, gl, currPoints);
                 drawLines(appContext,gl, currPoints);
