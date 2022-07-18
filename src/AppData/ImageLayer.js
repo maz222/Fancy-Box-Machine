@@ -110,12 +110,16 @@ export class ImageLayer {
     deletePoint(pointIndex) {
         //set the previous point to connect with the next point
         if(pointIndex-1 >= 0 && pointIndex+1 < this.points.length) {
-            console.log("changing prev point");
             this.points[pointIndex-1].setNextNode(this.points[pointIndex+1].position);
         }
         //if the last point was deleted, the previous point shouldn't point to anything
         if(pointIndex+1 == this.points.length) {
             this.points[pointIndex-1].setNextNode(null);
+        }
+        //if deleting the 'hinge' point of a polygon (N---*0*---1), need to change the last point of the polygon as well
+        //technically, polygons can't be less than two points
+        if(pointIndex == 0 && this.polygon) {
+            this.points[this.points.length-1].setNextNode(this.points[1].position);
         }
         this.points.splice(pointIndex,1);
         //if there are 2 or less points, the points can't form a polygon / be complete
