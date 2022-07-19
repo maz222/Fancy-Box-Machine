@@ -40,11 +40,12 @@ export class LayerManager {
 }
 
 export class ImageLayer {
-    constructor(visibility=true,color=getRandomColor(),points=[],polygon=false){
+    constructor(visibility=true,color=getRandomColor(),points=[],polygon=false,name="New Layer"){
         this.visibility = visibility;
         this.color = color;
         this.points = points;
         this.polygon = polygon;
+        this.name = name;
     }
     addPoint(newPoint) {
         this.points.push(newPoint);
@@ -148,7 +149,7 @@ export class ImageLayer {
         for(var i in this.points) {
             clonedPoints.push(this.points[i].clone());
         }
-        return new ImageLayer(this.visibility,[...this.color],clonedPoints,this.polygon);
+        return new ImageLayer(this.visibility,[...this.color],clonedPoints,this.polygon,this.name);
     }
 }
 

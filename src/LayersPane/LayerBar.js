@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import styled from "styled-components";
 
 //import {AppContext} from '../AppContextProvider.js';
@@ -14,13 +14,13 @@ const StyledLayer = styled.li`
     align-items:center;
     border-bottom:1px solid black;
 
-    .layerVisibility {
+    .layerVisibility, .editLabel {
         display:flex;
         justify-content:center;
         align-items:center;
     }
 
-    .layerColor, .layerVisibility {
+    .layerColor, .layerVisibility, .editLabel {
         width: 25px;
         height: 25px;
         margin: 0 5px 0 5px;
@@ -28,12 +28,17 @@ const StyledLayer = styled.li`
 
     .layerName {
         margin: 0 0 0 5px;
-        width:40%;
+        width:calc(100% - 35px * 3 - 5px);
+        text-overflow:ellipsis;
     }
 `;
 
 const InactiveLayer = styled(StyledLayer)`  
     background-color:rgb(100,100,100);
+
+    .layerName {
+        width:calc(100% - 35px * 2 - 5px);
+    }
 `;
 
 const ActiveLayer = styled(StyledLayer)`
@@ -42,6 +47,9 @@ const ActiveLayer = styled(StyledLayer)`
 
 function Layer(props) {
     const appContext = useContext(AppContext);
+    const nameRef = React.useRef(null);
+    const [isFocused, setIsFocused] = useState(false);
+    const [newLabel, setNewLabel] = useState(appContext.layerManager.layers[props.index].name);
     //props
         //index - layer index used in appContext
         //appContext
@@ -52,16 +60,52 @@ function Layer(props) {
         layer.visibility = !layer.visibility;
         appContext.setLayerManager(appContext.layerManager.clone());
     };
+
+    useEffect(() => {
+        if(nameRef !== null && isFocused) {
+            nameRef.current.focus();
+        }
+    },[isFocused]);
+
+    useEffect(() => {
+        console.log("layer name change");
+        setNewLabel(appContext.layerManager.layers[props.index].name);
+    },[appContext.layerManager.layers[props.index].name])
+
+    useEffect(() => {
+        console.log("curr layer change");
+        if(newLabel.length > 0 ) {
+            updateLayerName(newLabel)
+        }
+    },[appContext.currentLayer])
+
+    useEffect(() => {
+        console.log(`index change: ${props.index}`);
+    },[props.index]);
+
+    const updateLayerName = (newName) => {
+        var layer = appContext.layerManager.layers[props.index];
+        if(layer.name != newName) {
+            layer.name = newName;
+            appContext.layerManager.updateLayer(layer,props.index);
+        }
+    }
+
     return(
         props.index == appContext.currentLayer ? 
         <ActiveLayer>
             <button class="layerVisibility" onClick={toggleVisibility}>{visibility ? <i class="fas fa-eye"></i> : <i class="fas fa-eye-slash"></i>}</button>
             <div class="layerColor" style={{backgroundColor:color}}></div>
+            {isFocused ? <input class="layerName" type="text" value={newLabel.length > 0 ? newLabel : layer.name} 
+                onChange={(e) => {setNewLabel(e.target.value)}} disabled={!isFocused} onSubmit={(e) => {updateLayerName(e.target.value)}} ref={nameRef}/> : <p className='layerName'>{layer.name}</p>}
+            
+            <button class="editLabel" onClick={() => {setIsFocused(true)}}><i class="fas fa-pen"></i></button>
         </ActiveLayer>
         :
         <InactiveLayer  onClick={() => {appContext.setCurrentLayer(props.index)}}>
             <button class="layerVisibility" onClick={toggleVisibility}>{visibility ? <i class="fas fa-eye"></i> : <i class="fas fa-eye-slash"></i>}</button>
             <div class="layerColor" style={{backgroundColor:color}}></div>
+            <p className='layerName'>{newLabel}</p>        
         </InactiveLayer>
     );
 }

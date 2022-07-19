@@ -10,6 +10,7 @@ import MainEditor from '../EditorCanvas/MainEditor';
 import { LayerManager } from './ImageLayer';
 
 import { DebugConsole } from '../DebugConsole';
+import LabelTrie from './LabelTrie';
 
 export const AppContext = React.createContext({})
 const ContextProvider = AppContext.Provider;
@@ -62,6 +63,7 @@ const ContextContainer = (props) => {
     const [tool, setTool] = useState(new Tool(AppContext));
     const [image, setImage] = useState(null);
     const [canvasSize, setCanvasSize] = useState(null);
+    const [labelTrie, setLabelTrie] = useState(new LabelTrie());
     
     const [debugText, setDebugText] = useState(["testing"]);
     return(

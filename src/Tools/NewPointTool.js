@@ -8,7 +8,7 @@ import { AppSettings } from '../AppData/AppSettings.js';
 export class PointTool extends SmartCursorTool {
     constructor() {
         super();
-        this.id="addPoint";
+        this.id="newPoint";
         this.cursor = "crosshair";
     }
     reset() {

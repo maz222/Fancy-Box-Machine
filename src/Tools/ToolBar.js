@@ -6,7 +6,7 @@ import { AppContext } from '../AppData/AppContext';
 
 
 import {ZoomTool, MoveTool} from './Tools.js';
-import { PointTool } from './AddPointTool.js';
+import { PointTool } from './NewPointTool.js';
 
 import { DebugPositionTool } from './DebugPointTool';
 import DeletePointTool from './DeletePointTool';
@@ -40,7 +40,7 @@ function ToolBar() {
         {id:"decreaseBrightness", onClick:() => {appContext.setBrightness(appContext.brightness+-.1)}, child:<i class="fas fa-minus"></i>},
         {id:"zoomOut", onClick:() => {appContext.setTool(new ZoomTool(-.1))}, child:<i class="fas fa-search-minus"></i>},
         {id:"zoomIn", onClick:() => {appContext.setTool(new ZoomTool(+.1))}, child:<i class="fas fa-search-plus"></i>},
-        {id:"pen", onClick:() => {appContext.setTool(new PointTool())}, child:<i class="fas fa-pen"></i>},
+        {id:"newPoint", onClick:() => {appContext.setTool(new PointTool())}, child:<i class="fas fa-pen"></i>},
         {id:"deletePoint", onClick:() => {appContext.setTool(new DeletePointTool())}, child:<i class="fas fa-minus"></i>},
         {id:"movePoint", onClick:() => {appContext.setTool(new MovePointTool())}, child:<i class="fas fa-draw-polygon"></i>},
         {id:"moveImage", onClick:() => {appContext.setTool(new MoveTool())}, child:<i class="fas fa-hand-pointer"></i>},
