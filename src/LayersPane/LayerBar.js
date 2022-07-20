@@ -49,7 +49,6 @@ function Layer(props) {
     const appContext = useContext(AppContext);
     const nameRef = React.useRef(null);
     const [isFocused, setIsFocused] = useState(false);
-    const [newLabel, setNewLabel] = useState(appContext.layerManager.layers[props.index].name);
     //props
         //index - layer index used in appContext
         //appContext
@@ -68,36 +67,16 @@ function Layer(props) {
     },[isFocused]);
 
     useEffect(() => {
-        console.log("layer name change");
-        setNewLabel(appContext.layerManager.layers[props.index].name);
-    },[appContext.layerManager.layers[props.index].name])
-
-    useEffect(() => {
-        console.log("curr layer change");
-        if(newLabel.length > 0 ) {
-            updateLayerName(newLabel)
-        }
-    },[appContext.currentLayer])
-
-    useEffect(() => {
-        console.log(`index change: ${props.index}`);
-    },[props.index]);
-
-    const updateLayerName = (newName) => {
-        var layer = appContext.layerManager.layers[props.index];
-        if(layer.name != newName) {
-            layer.name = newName;
-            appContext.layerManager.updateLayer(layer,props.index);
-        }
-    }
+        setIsFocused(false);
+    },[props.layer, appContext.currentLayer])
 
     return(
         props.index == appContext.currentLayer ? 
         <ActiveLayer>
             <button class="layerVisibility" onClick={toggleVisibility}>{visibility ? <i class="fas fa-eye"></i> : <i class="fas fa-eye-slash"></i>}</button>
             <div class="layerColor" style={{backgroundColor:color}}></div>
-            {isFocused ? <input class="layerName" type="text" value={newLabel.length > 0 ? newLabel : layer.name} 
-                onChange={(e) => {setNewLabel(e.target.value)}} disabled={!isFocused} onSubmit={(e) => {updateLayerName(e.target.value)}} ref={nameRef}/> : <p className='layerName'>{layer.name}</p>}
+            {isFocused ? <input class="layerName" type="text" value={props.name} 
+                onChange={(e) => {props.nameCallback(e)}} disabled={!isFocused} ref={nameRef}/> : <p className='layerName'>{props.name}</p>}
             
             <button class="editLabel" onClick={() => {setIsFocused(true)}}><i class="fas fa-pen"></i></button>
         </ActiveLayer>
@@ -105,7 +84,7 @@ function Layer(props) {
         <InactiveLayer  onClick={() => {appContext.setCurrentLayer(props.index)}}>
             <button class="layerVisibility" onClick={toggleVisibility}>{visibility ? <i class="fas fa-eye"></i> : <i class="fas fa-eye-slash"></i>}</button>
             <div class="layerColor" style={{backgroundColor:color}}></div>
-            <p className='layerName'>{newLabel}</p>        
+            <p className='layerName'>{props.name}</p>        
         </InactiveLayer>
     );
 }
@@ -132,6 +111,18 @@ const ButtonContainer = styled.div`
 
 function LayerBar() {
     const appContext = React.useContext(AppContext);
+    const [newName, setNewName] = React.useState("");
+
+    const [oldLayer, setOldLayer] = React.useState(appContext.currentLayer);
+    React.useEffect(() => {
+        if(newName.length > 0) {
+            appContext.layerManager.layers[oldLayer].name = newName;
+            appContext.setLayerManager(appContext.layerManager.clone());
+        }
+        setOldLayer(appContext.currentLayer);
+        setNewName("");
+        appContext.setDebugText([`Current Layer: ${appContext.currentLayer}`])
+    },[appContext.currentLayer])
 
     const addLayer = () => {
         const newIndex = appContext.layerManager.layers.length;
@@ -161,19 +152,30 @@ function LayerBar() {
             <div style={{width:'100%'}}>
                 <h2>Layers</h2>
                 <DragDropContext onDragEnd={(result) => {
-                    if(!result.destination) {return}
-                    reorderLayers(result.source.index, result.destination.index)
-                }}>
+                        if(!result.destination) {return}
+                        reorderLayers(result.source.index, result.destination.index);
+                    }}
+                    onDragStart = {() => {        
+                        if(newName.length > 0) {
+                            appContext.layerManager.layers[oldLayer].name = newName;
+                            appContext.setLayerManager(appContext.layerManager.clone());
+                        }
+                        setNewName("");
+                    }}
+                >
                     <Droppable droppableId="layers">
                         {(provided) => (
                             <div {...provided.droppableProps} ref={provided.innerRef}>
                             {
                                 appContext.layerManager.layers.map((item, index) => {
+                                    const layer = appContext.layerManager.layers[index];
                                     return(
                                         <Draggable key={"layer" + index} draggableId={"layer" + index} index={index}>
                                             {(provided) => (
                                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                                                    <Layer appContext={appContext} index={index}/>
+                                                    <Layer appContext={appContext} index={index} name={index == appContext.currentLayer ? 
+                                                        (newName.length > 0 ? newName : layer.name) : layer.name} nameCallback={(e) => {setNewName(e.target.value)}}
+                                                    />
                                                 </div>
                                             )}
                                         </Draggable>
