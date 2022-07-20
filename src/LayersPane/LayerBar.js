@@ -121,7 +121,6 @@ function LayerBar() {
         }
         setOldLayer(appContext.currentLayer);
         setNewName("");
-        appContext.setDebugText([`Current Layer: ${appContext.currentLayer}`])
     },[appContext.currentLayer])
 
     const addLayer = () => {
