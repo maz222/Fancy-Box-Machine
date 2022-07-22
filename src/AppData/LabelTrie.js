@@ -10,15 +10,49 @@ export default class LabelTrie {
         walker.updateSuggestion(labelText, labelWeight);
         walker.isEnd = true;
     }
-    suggestLabel(userInput) {
-        var walker = this.head;
-        for(var i=0; i<userInput.length; i++){
-            walker = walker.getChild(userInput[i]);
-            if(walker === null) {
-                return null;
+    suggestLabel(userInput, isCaseSensitive=false) {
+        var labels = this.getLabelNodes(userInput, isCaseSensitive);
+        if(labels.length == 0) {
+            return null;
+        }
+        var maxSuggestion = labels[0].suggestionWeight;
+        var suggestedNode = 0;
+        for(var i=1; i<labels.length; i++) {
+            if(labels[i].suggestionWeight >= maxSuggestion) {
+                maxSuggestion = labels[i].suggestionWeight;
+                suggestedNode = i;
             }
         }
-        return walker.suggestion;
+        return labels[suggestedNode].suggestion;
+    }
+    getLabelNodes(labelName, isCaseSensitive=false) {
+        function walk(labelName, node, results, isCaseSensitive=false) {
+            if(labelName.length == 0) {
+                results.push(node);
+                return;
+            }
+            const currChar = labelName[0];
+            var foundNodes = [];
+            if(isCaseSensitive) {
+                foundNodes.push(node.getChild(currChar));
+            }
+            else {
+                foundNodes.push(node.getChild(currChar.toUpperCase()));
+                foundNodes.push(node.getChild(currChar.toLowerCase()));
+            }
+            for(var i in foundNodes) {
+                if(foundNodes[i] === null) {
+                    results.push(node);
+                }
+                else {
+                    walk(labelName.slice(1),foundNodes[i],results,isCaseSensitive);
+                }
+            }
+        }
+        var walker = this.head;
+        var results = [];
+        walk(labelName, walker, results, isCaseSensitive);
+        console.log(results);
     }
     clone() {
         var newTrie = new LabelTrie();

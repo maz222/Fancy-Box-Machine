@@ -63,7 +63,18 @@ const ContextContainer = (props) => {
     const [tool, setTool] = useState(new Tool(AppContext));
     const [image, setImage] = useState(null);
     const [canvasSize, setCanvasSize] = useState(null);
+
+    var startingTrie = new LabelTrie();
+    startingTrie.addLabel("large truck", 10);
+    startingTrie.addLabel("small truck", 10);
+    startingTrie.addLabel("jeep", 10);
+    startingTrie.addLabel("van", 10);
+    startingTrie.addLabel("car", 10);
+    startingTrie.addLabel("SUV", 10);
+    startingTrie.addLabel("taxi", 10);
+
     const [labelTrie, setLabelTrie] = useState(new LabelTrie());
+
     
     const [debugText, setDebugText] = useState(["testing"]);
     return(
