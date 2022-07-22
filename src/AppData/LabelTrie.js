@@ -12,6 +12,7 @@ export default class LabelTrie {
     }
     suggestLabel(userInput, isCaseSensitive=false) {
         var labels = this.getLabelNodes(userInput, isCaseSensitive);
+        console.log(labels);
         if(labels.length == 0) {
             return null;
         }
@@ -26,9 +27,12 @@ export default class LabelTrie {
         return labels[suggestedNode].suggestion;
     }
     getLabelNodes(labelName, isCaseSensitive=false) {
+        console.log(labelName);
         function walk(labelName, node, results, isCaseSensitive=false) {
-            if(labelName.length == 0) {
-                results.push(node);
+            if(labelName.length == 0 || node === null) {
+                if(node !== null) {
+                    results.push(node);
+                }
                 return;
             }
             const currChar = labelName[0];
@@ -41,18 +45,13 @@ export default class LabelTrie {
                 foundNodes.push(node.getChild(currChar.toLowerCase()));
             }
             for(var i in foundNodes) {
-                if(foundNodes[i] === null) {
-                    results.push(node);
-                }
-                else {
-                    walk(labelName.slice(1),foundNodes[i],results,isCaseSensitive);
-                }
+                walk(labelName.slice(1),foundNodes[i],results,isCaseSensitive);
             }
         }
         var walker = this.head;
         var results = [];
         walk(labelName, walker, results, isCaseSensitive);
-        console.log(results);
+        return(results);
     }
     clone() {
         var newTrie = new LabelTrie();

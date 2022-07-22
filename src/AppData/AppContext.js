@@ -70,12 +70,11 @@ const ContextContainer = (props) => {
     startingTrie.addLabel("jeep", 10);
     startingTrie.addLabel("van", 10);
     startingTrie.addLabel("car", 10);
-    startingTrie.addLabel("SUV", 10);
+    startingTrie.addLabel("SUV", 100);
     startingTrie.addLabel("taxi", 10);
+    const [labelTrie, setLabelTrie] = useState(startingTrie);
 
-    const [labelTrie, setLabelTrie] = useState(new LabelTrie());
 
-    
     const [debugText, setDebugText] = useState(["testing"]);
     return(
         <div style={{width:"100%",height:"100%"}}>
@@ -88,7 +87,8 @@ const ContextContainer = (props) => {
                 layerManager:layerManager,setLayerManager:setLayerManager,
                 currentLayer:currentLayer, setCurrentLayer:setCurrentLayer,
                 tool:tool,setTool:setTool,
-                debugText:debugText,setDebugText:setDebugText
+                debugText:debugText,setDebugText:setDebugText,
+                labelTrie:labelTrie,setLabelTrie:setLabelTrie
             }}>
                 {debugText.length > 0 ? <DebugConsole debugText={debugText} setDebugText={setDebugText} /> : null}
                 <Banner>Box Buddy</Banner>

@@ -26,10 +26,27 @@ const StyledLayer = styled.li`
         margin: 0 5px 0 5px;
     }
 
-    .layerName {
-        margin: 0 0 0 5px;
+    .nameContainer {
+        margin: 0;
         width:calc(100% - 35px * 3 - 5px);
+    }
+
+    .layerName {
+        width:calc(100% - 10px);
+        margin:0;
         text-overflow:ellipsis;
+        overflow:hidden;
+        white-space:nowrap;
+    }
+
+    .suggestedName {
+        margin:0;
+        font-size:.75em;
+        color:grey;
+        text-overflow:ellipsis;
+        overflow:hidden;
+        white-space:nowrap;
+        width:100%;
     }
 `;
 
@@ -70,14 +87,23 @@ function Layer(props) {
         setIsFocused(false);
     },[props.layer, appContext.currentLayer])
 
+    const handleKey = (e) => {
+        if(e.keyCode == 9 && props.suggestedName !== null) {
+            e.preventDefault();
+            props.nameCallback(props.suggestedName);
+        }
+    }
+
     return(
         props.index == appContext.currentLayer ? 
         <ActiveLayer>
             <button class="layerVisibility" onClick={toggleVisibility}>{visibility ? <i class="fas fa-eye"></i> : <i class="fas fa-eye-slash"></i>}</button>
             <div class="layerColor" style={{backgroundColor:color}}></div>
-            {isFocused ? <input class="layerName" type="text" value={props.name} 
-                onChange={(e) => {props.nameCallback(e)}} disabled={!isFocused} ref={nameRef}/> : <p className='layerName'>{props.name}</p>}
-            
+            <div className="nameContainer">
+                {isFocused ? <input class="layerName" type="text" value={props.name} onKeyDown={handleKey} onChange={(e) => {props.nameCallback(e.target.value)}} disabled={!isFocused} ref={nameRef}/> 
+                : <p className='layerName'>{props.name}</p>}
+                {props.suggestedName !== null && isFocused ? <p className="suggestedName">{props.suggestedName}</p> : null}  
+            </div>          
             <button class="editLabel" onClick={() => {setIsFocused(true)}}><i class="fas fa-pen"></i></button>
         </ActiveLayer>
         :
@@ -111,16 +137,22 @@ const ButtonContainer = styled.div`
 
 function LayerBar() {
     const appContext = React.useContext(AppContext);
-    const [newName, setNewName] = React.useState("");
+    const [newName, setNewName] = React.useState(null);
+    const [suggestedName, setSuggestedName] = React.useState(null);
+    const updateName = (text) => {
+         setSuggestedName(appContext.labelTrie.suggestLabel(text));
+         setNewName(text);
+    }
 
     const [oldLayer, setOldLayer] = React.useState(appContext.currentLayer);
     React.useEffect(() => {
-        if(newName.length > 0) {
+        if(newName !== null && newName.length > 0) {
             appContext.layerManager.layers[oldLayer].name = newName;
             appContext.setLayerManager(appContext.layerManager.clone());
         }
         setOldLayer(appContext.currentLayer);
-        setNewName("");
+        setNewName(null);
+        setSuggestedName(null);
     },[appContext.currentLayer])
 
     const addLayer = () => {
@@ -172,8 +204,8 @@ function LayerBar() {
                                         <Draggable key={"layer" + index} draggableId={"layer" + index} index={index}>
                                             {(provided) => (
                                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                                                    <Layer appContext={appContext} index={index} name={index == appContext.currentLayer ? 
-                                                        (newName.length > 0 ? newName : layer.name) : layer.name} nameCallback={(e) => {setNewName(e.target.value)}}
+                                                    <Layer appContext={appContext} index={index} suggestedName={suggestedName} 
+                                                    name={index == appContext.currentLayer ? (newName === null ? layer.name : newName) : layer.name} nameCallback={(text) => {updateName(text)}}
                                                     />
                                                 </div>
                                             )}
