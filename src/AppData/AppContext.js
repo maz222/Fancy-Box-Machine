@@ -26,7 +26,7 @@ const Banner = styled.div`
 
 const Editor = styled.div`
   width:100%;
-  height:calc(100% - 50px - 40px);
+  height:calc(100% - 50px - 50px);
   display:flex;
   justify-content:space-between;
   align-items:center;

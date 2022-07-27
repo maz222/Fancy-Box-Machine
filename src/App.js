@@ -12,24 +12,6 @@ import ToolBar from './Tools/ToolBar.js';
 import LayerBar from './LayersPane/LayerBar.js';
 import MainEditor from './EditorCanvas/MainEditor';
 
-
-const Banner = styled.div`
-  width:100%;
-  height:50px;
-  background-color:rgb(80,80,80);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-`;
-
-const Editor = styled.div`
-  width:100%;
-  height:calc(100% - 50px - 40px);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-`
-
 class App extends React.Component {
   render() {
     return (
