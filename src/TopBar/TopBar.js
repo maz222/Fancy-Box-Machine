@@ -8,12 +8,21 @@ const TopBar = styled.div`
     justify-content:space-between;
     align-items:center;
     background-color:rgb(60,60,60);
-    height:50px;
 `;
 
 const TopBarButton = styled.button`
-    padding:2px 4px 2px 4px;
-    margin:4px;
+    margin:10px;
+    border:1px solid rgba(40,40,40);
+    border-radius:4px;
+    i {
+        font-size:1.25em;
+        padding:5px;
+        margin:0;
+    }
+    :hover {
+        cursor:pointer;
+
+    }
 `;
 
 function TopMenu(props) {
@@ -38,14 +47,10 @@ function TopMenu(props) {
     return(
         <TopBar>
             <div style={{display:'flex'}}>
-                <div style={{margin:'4px'}}>
-                    <TopBarButton onClick={() => {appContext.setContrast(1)}}>100% Contrast</TopBarButton>
-                    <TopBarButton onClick={() => {appContext.setBrightness(1)}}>100% Brightness</TopBarButton>
-                </div>
-                <div style={{margin:'4px'}}>
-                    <TopBarButton onClick={() => {appContext.setZoom({amount:1,offset:[0,0]})}}>100% Zoom</TopBarButton>
-                    <TopBarButton onClick={() => {zoomToScreen()}}>Fit to Screen</TopBarButton>
-                </div>
+                <TopBarButton onClick={() => {appContext.setContrast(1)}}><i class="fa-solid fa-circle-half-stroke"></i></TopBarButton>
+                <TopBarButton onClick={() => {appContext.setBrightness(1)}}><i class="fa-solid fa-sun"></i></TopBarButton>
+                <TopBarButton onClick={() => {appContext.setZoom({amount:1,offset:[0,0]})}}><i class="fa-solid fa-maximize"></i></TopBarButton>
+                <TopBarButton onClick={() => {zoomToScreen()}}><i class="fa-solid fa-minimize"></i></TopBarButton>
             </div>
             <div>
                 <TopBarButton>Get Script</TopBarButton>

@@ -29,7 +29,7 @@ export class BaseTool {
 export class ZoomTool extends BaseTool {
     constructor(zoomAmount) {
         super();
-        this.id = "zoom";
+        this.id = zoomAmount > 0 ? "zoomIn" : "zoomOut";
         this.zoomAmount = zoomAmount;
         this.cursor = this.zoomAmount > 0 ? "zoom-in" : "zoom-out";
     }

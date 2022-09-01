@@ -34,15 +34,15 @@ export function renderImage(gl, canvas, image, zoom, offset, contrast, brightnes
     gl.uniform2f(canvasResLocation, canvas.width, canvas.height);
 
     //load image uniform
-    // Create a texture.
+    //create a texture.
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    // Set the parameters so we can render any size image.
+    //set the parameters so we can render any size image.
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    // Upload the image into the texture.
+    //upload the image into the texture.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
     //load brightness uniform
@@ -52,7 +52,7 @@ export function renderImage(gl, canvas, image, zoom, offset, contrast, brightnes
     const contrastLocation = gl.getUniformLocation(program, "u_contrast");
     gl.uniform1f(contrastLocation, contrast);
 
-    // Draw the rectangle.
+    //draw the rectangle.
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
     var count = 6;
@@ -80,13 +80,13 @@ export const imageVertexSource = `
 export const imageFragmentSource = `
     precision mediump float;
 
-    // our texture
+    //our texture
     uniform sampler2D u_image;
 
     uniform float u_brightness;
     uniform float u_contrast;
 
-    // the texCoords passed in from the vertex shader.
+    //the texCoords passed in from the vertex shader.
     varying vec2 v_texCoord;
 
     mat4 brightnessMatrix(float brightness)

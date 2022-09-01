@@ -16,7 +16,7 @@ export class PointTool extends SmartCursorTool {
     }
 
     handleMouseMove(e, canvas, appContext) {
-        super.handleMouseMove(e, canvas,appContext);
+        super.handleMouseMove(e, canvas, appContext);
         return true;
     }
     handleMouseUp(e, canvas, appContext) {

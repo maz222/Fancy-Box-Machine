@@ -186,8 +186,11 @@ function LayerBar() {
                         if(!result.destination) {return}
                         reorderLayers(result.source.index, result.destination.index);
                     }}
-                    onDragStart = {() => {        
-                        if(newName.length > 0) {
+                    onDragStart = {() => {      
+                        console.log(newName);
+                        console.log(appContext.layerManager);
+                        console.log("---");  
+                        if(newName !== null && newName.length > 0) {
                             appContext.layerManager.layers[oldLayer].name = newName;
                             appContext.setLayerManager(appContext.layerManager.clone());
                         }

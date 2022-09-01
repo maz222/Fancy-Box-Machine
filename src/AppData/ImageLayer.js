@@ -31,11 +31,11 @@ export class LayerManager {
         if(clone){return this.clone();}
     }
     clone() {
-        var clonedLayers = [];
-        for(var i in this.layers) {
-            clonedLayers.push(this.layers[i].clone());
-        }
-        return new LayerManager(clonedLayers);
+        //var clonedLayers = [];
+        //for(var i in this.layers) {
+        //    clonedLayers.push(this.layers[i].clone());
+        //}
+        return new LayerManager(this.layers);
     }
 }
 
@@ -46,12 +46,18 @@ export class ImageLayer {
         this.points = points;
         this.polygon = polygon;
         this.name = name;
+        this.glProgramKey = 'polygon';
     }
     addPoint(newPoint) {
         this.points.push(newPoint);
         if(this.points.length > 1) {
             this.points[this.points.length-2].setNextNode(newPoint.position,newPoint.color);
         }
+    }
+    insertPoint(newPoint,index) {
+        this.points.splice(index,0,newPoint);
+        this.points[index-1].setNextNode(newPoint.position,newPoint.color);
+        newPoint.setNextNode(this.points[index+1].position, this.points[index+1].color);
     }
     /*
         Finds the closest end point of a line (within a certain radius) to a given position. X------X (Either X point)

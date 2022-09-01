@@ -3,6 +3,10 @@ import { getRawImagePosition } from "./UtilityFunctions";
 import { AppSettings } from "../AppData/AppSettings";
 
 export class DebugPositionTool extends SmartCursorTool {
+    constructor() {
+        super();
+        this.id="debugTool";
+    }
     //Given a normalized point, check all the points in a layer to see if the normalized point overlaps. return the *index* of the found point within the layer
     checkForOverlap(position, layer, canvas, appContext) {
         const rawPos =  getRawImagePosition(position, canvas, appContext);

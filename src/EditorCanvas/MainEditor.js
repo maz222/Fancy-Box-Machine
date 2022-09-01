@@ -1,20 +1,21 @@
 import React, { useContext, useEffect } from 'react';
 import styled from "styled-components";
 
-//import {AppContext} from '../AppContextProvider.js';
 import { AppContext } from '../AppData/AppContext';
+import { AppSettings } from '../AppData/AppSettings';
 
 //import {printAttributes, createShader, createProgram, loadFloatAttrib} from './WebGLUtilities.js';
 import {renderBackground} from '../Shaders/BackgroundShaders.js';
 import {renderImage} from '../Shaders/ImageShaders.js';
-import {renderLines, renderLineWithProgram} from '../Shaders/LineShaders.js';
-import {renderPoints, renderPointWithProgram} from '../Shaders/PointShaders.js';
-import {renderShape} from '../Shaders/ShapeShaders.js';
+import {renderLineWithProgram} from '../Shaders/LineShaders.js';
+import {renderPointWithProgram} from '../Shaders/PointShaders.js';
+import {renderPolygonWithProgram} from '../Shaders/PolygonShaders';
 
 import {printAttributes, createShader, createProgram, loadFloatAttrib, setRectangle} from '../Shaders/WebGLUtilities.js';
 import {lineVertexSource, lineFragmentSource} from '../Shaders/LineShaders.js';
 import {pointVertexSource, pointFragmentSource} from '../Shaders/PointShaders.js';
 import {imageVertexSource, imageFragmentSource} from '../Shaders/ImageShaders.js';
+import {polygonVertexSource, getPolygonFragmentSource, polygonFragmentSource} from '../Shaders/PolygonShaders';
 
 const Wrapper = styled.div`
     display:flex;
@@ -76,9 +77,35 @@ function EditorCanvas(props) {
         }
     }
 
+    const drawPoly = (context, gl, layer) => {
+        const canvasData = {
+            canvas:canvasRef.current,
+            image:context.image,
+            zoom:context.zoom.amount,
+            offset:context.zoom.offset,
+        };
+        if(!layer.polygon) {
+            return;
+        }
+        if(layer.points.length > AppSettings.polyBasePoints) {
+            var tempDict = {};
+            Object.keys(shaderDict).forEach((key,index) => {
+                tempDict[key] = shaderDict[key];
+            });
+            var polyData = {vert:polygonVertexSource,frag:getPolygonFragmentSource(AppSettings.polyBasePoints),name:"polygon"};
+            const vertShader = createShader(gl, gl.VERTEX_SHADER, polyData.vert, polyData.name);
+            const fragShader = createShader(gl, gl.FRAGMENT_SHADER, polyData.frag, polyData.name);
+            const program = createProgram(gl, vertShader, fragShader, polyData.name);
+            tempDict[polyData.name] = program;
+            setShaderDict(tempDict);
+            setRedrawCanvas(true);
+        }
+        renderPolygonWithProgram(gl,shaderDict[layer.glProgramKey],canvasData,layer);
+    }
+
     const renderCanvas = () => {
         const canvas = canvasRef.current;
-        const gl = canvas.getContext("webgl");
+        const gl = canvas.getContext("webgl2");
         //const gl = canvas.getContext("webgl", {
         //    premultipliedAlpha: false  // Ask for non-premultiplied alpha
         // });
@@ -101,7 +128,8 @@ function EditorCanvas(props) {
                     currPoints = clonedLayer.points;
                 }
                 drawPoints(appContext, gl, currPoints);
-                drawLines(appContext,gl, currPoints);
+                drawLines(appContext, gl, currPoints);
+                drawPoly(appContext, gl, currLayer);
             }
         }
         //console.log(appContext.layers);
@@ -114,17 +142,20 @@ function EditorCanvas(props) {
             return;
         }
         console.log("compiling shaders?");
-        const gl = canvasRef.current.getContext("webgl");
+        const gl = canvasRef.current.getContext("webgl2");
         const shaderList = [
             //image shader
             {vert:imageVertexSource,frag:imageFragmentSource,name:"image"},
             //point shader
             {vert:pointVertexSource,frag:pointFragmentSource,name:"point"},
             //line shader
-            {vert:lineVertexSource,frag:lineFragmentSource,name:"line"}
+            {vert:lineVertexSource,frag:lineFragmentSource,name:"line"},
+            //polygon shader
+            {vert:polygonVertexSource,frag:getPolygonFragmentSource(AppSettings.polyBasePoints),name:"polygon"}
         ];
         var temp = {};
         for(var i in shaderList) {
+            console.log(shaderList[i].name);
             const vertShader = createShader(gl, gl.VERTEX_SHADER, shaderList[i].vert, shaderList[i].name);
             const fragShader = createShader(gl, gl.FRAGMENT_SHADER, shaderList[i].frag, shaderList[i].name);
             const program = createProgram(gl, vertShader, fragShader, shaderList[i].name);

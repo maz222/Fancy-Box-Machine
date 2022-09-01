@@ -7,8 +7,8 @@ export function createShader(gl, type, source, description="default") {
         //console.log("created " + description + " shader");
         return shader;
     }
-    //console.log("failed to create " + description + " shader");
-    //console.log(gl.getShaderInfoLog(shader));
+    console.log("failed to create " + description + " shader");
+    console.log(gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
     return null;
 }

@@ -3,5 +3,7 @@ export const AppSettings = {
     cursorPointRadius:10,
     lineWidth:2,
     pointHitboxRadius:20,
-    lineHitboxRadius:5
+    lineHitboxRadius:5,
+
+    polyBasePoints:200
 }
