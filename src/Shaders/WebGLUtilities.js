@@ -44,8 +44,8 @@ export function loadFloatAttrib(gl,program,attributeName,attributeData,isStatic,
 export function printAttributes(program, gl) {
     const numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
     for (let ii = 0; ii < numAttribs; ++ii) {
-    const attribInfo = gl.getActiveAttrib(program, ii);
-    const index = gl.getAttribLocation(program, attribInfo.name);
+        const attribInfo = gl.getActiveAttrib(program, ii);
+        const index = gl.getAttribLocation(program, attribInfo.name);
     }
 }
 

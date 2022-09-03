@@ -20,27 +20,9 @@ const Bar = styled.div`
     grid-template-columns: 50px 50px;
     grid-template-rows: repeat(6, 50px);
     padding:5px;
-    background-color:rgba(80,80,80);
+    background-color:rgba(20,20,20);
     width:calc(50px * 2 + 10);
     height:calc(100% - 10px);
-`;
-
-const ToolButton = styled.button`
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-grow:1;
-    font-size:1vw;
-    margin:2px;
-    padding:10px;
-    border:1px solid rgba(40,40,40);
-    border-radius:4px;
-    :hover {
-        cursor:pointer;
-    }
-    :focus {
-        background-color:red;
-    }
 `;
 
 const IconContainer = styled.div`

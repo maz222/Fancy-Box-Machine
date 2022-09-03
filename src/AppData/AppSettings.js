@@ -1,9 +1,14 @@
 export const AppSettings = {
-    pointRadius:10,
+    pointInactiveRadius:2,
+    pointActiveRadius:10,
     cursorPointRadius:10,
-    lineWidth:2,
     pointHitboxRadius:20,
+
+    lineWidth:2,
     lineHitboxRadius:5,
 
-    polyBasePoints:200
+    polyBasePoints:100,
+    polyInactiveOpacity:0.25,
+    polyActiveOpacity:0.7,
+
 }

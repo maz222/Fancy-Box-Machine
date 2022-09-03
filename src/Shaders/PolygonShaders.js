@@ -2,10 +2,10 @@ import { loadFloatAttrib } from "./WebGLUtilities";
 
 //gets a set of 6 points - two triangles that make up the outermost rectangle of the polygon
 function getRect(points) {
-    var top = points[0].position.y;
-    var bottom = points[0].position.y;
-    var left = points[0].position.x;
-    var right = points[0].position.x;
+    var top = points[0].y;
+    var bottom = points[0].y;
+    var left = points[0].x;
+    var right = points[0].x;
     //box orientation
     /*
         1*
@@ -14,12 +14,11 @@ function getRect(points) {
         0*******1 
     */
     points.forEach((point,index) => {
-        const pos = point.position;
-        top = Math.max(top,pos.y);
-        bottom = Math.min(bottom,pos.y);
-        left = Math.min(left,pos.x);
-        right = Math.max(right,pos.x);
-    })
+        top = Math.max(top,point.y);
+        bottom = Math.min(bottom,point.y);
+        left = Math.min(left,point.x);
+        right = Math.max(right,point.x);
+    });
     //corner points
     /*
         3 * * 2
@@ -43,17 +42,27 @@ function getRect(points) {
 function flattenPoints(points) {
     var out = [];
     points.forEach((point,index) => {
-        out.push(point.position.x);
-        out.push(point.position.y);
+        out.push(point.x);
+        out.push(1.0 - point.y);
     });
     return out;
 }
 
-export function renderPolygonWithProgram(gl, glProgram, canvasData, layer) {
-    gl.useProgram(glProgram);
+function parsePoints(layer,canvasData) {
+    const imageDimensions = [canvasData.image.width*canvasData.zoom, canvasData.image.height*canvasData.zoom];
+    const topLeftCorner = [(canvasData.canvas.width-imageDimensions[0])/2+canvasData.offset[0],(canvasData.canvas.height-imageDimensions[1])/2-canvasData.offset[1]];
+    var parsedPoints = [];
+    layer.points.forEach((point,index) => {
+        parsedPoints.push({x:(point.position.x*imageDimensions[0]+topLeftCorner[0])/canvasData.canvas.width,
+            y:(point.position.y*imageDimensions[1]+topLeftCorner[1])/canvasData.canvas.height});
+    });
+    return parsedPoints;
+}
 
-    var points = getRect(layer.points);
-    points = [0,1 ,1,1 ,0,0 ,0,0 ,1,1, 1,0];
+export function renderPolygonWithProgram(gl, glProgram, canvasData, layer, opactity=null) {
+    gl.useProgram(glProgram);
+    var parsedPoints = parsePoints(layer,canvasData);
+    var points = getRect(parsedPoints);
     loadFloatAttrib(gl,glProgram,"a_posCoord",points,true,2);
 
     //load canvas resolution uniform
@@ -64,10 +73,17 @@ export function renderPolygonWithProgram(gl, glProgram, canvasData, layer) {
     gl.uniform1i(pointCountLocation,layer.points.length);
     //load points uniform
     const pointsLocation = gl.getUniformLocation(glProgram, "u_points");
-    gl.uniform2fv(pointsLocation,flattenPoints(layer.points));
+    gl.uniform2fv(pointsLocation,flattenPoints(parsedPoints));
+    //load first point uniform
+    const firstPointLocation = gl.getUniformLocation(glProgram, "u_firstPoint");
+    gl.uniform2f(firstPointLocation, parsedPoints[0].x, 1.0 - parsedPoints[0].y);
+    //load last point uniform
+    const lastPointLocation = gl.getUniformLocation(glProgram, "u_lastPoint");
+    gl.uniform2f(lastPointLocation, parsedPoints[parsedPoints.length-1].x, 1.0 - parsedPoints[parsedPoints.length-1].y);
     //load line color
     const polygonColorLocation = gl.getUniformLocation(glProgram, "u_polyColor");
-    gl.uniform4f(polygonColorLocation, layer.color[0]/255, layer.color[1]/255, layer.color[2]/255, 1.0);
+    console.log(opactity);
+    gl.uniform4f(polygonColorLocation, layer.color[0]/255, layer.color[1]/255, layer.color[2]/255, opactity ? opactity : 1.0);
 
     //draw the rectangle.
     var primitiveType = gl.TRIANGLES;
@@ -96,12 +112,14 @@ export const polygonVertexSource = `
 export function getPolygonFragmentSource(maxPointCount) {
     var rayLoop = '';
     var i, j = 0;
-    for(i=0, j=maxPointCount-1; i<maxPointCount; j=i++) {
+    for(i=0; i<maxPointCount-1; i++) {
+        j = i + 1;
         rayLoop += 
-            `if((${i} < u_pointCount) && ((u_points[${i}].y > normFrag.y) != (u_points[${j}].y>normFrag.y)) &&
-                (normFrag.x < (u_points[${j}].x - u_points[${i}].x) * (normFrag.y-u_points[${i}].y) / (u_points[${j}].y - u_points[${i}].y) + u_points[${i}].x)) {
-                c = c + 1.0;
-            }`;
+                `if((${j} < u_pointCount) && 
+                    ((u_points[${i}].y > normPos.y) != (u_points[${j}].y>normPos.y)) &&
+                    (normPos.x < (u_points[${j}].x - u_points[${i}].x) * (normPos.y-u_points[${i}].y) / (u_points[${j}].y - u_points[${i}].y) + u_points[${i}].x)) {
+                    c = c + 1.0;
+                }`;
     }
     return(`
         precision mediump float;
@@ -110,82 +128,30 @@ export function getPolygonFragmentSource(maxPointCount) {
         uniform int u_pointCount;
         //array of *normalized* point positions
         uniform vec2 u_points[${maxPointCount}];
+        //first point of the polygon
+        uniform vec2 u_firstPoint;
+        //last point of the polygon
+        uniform vec2 u_lastPoint;
         //canvas resolution (in pixels)
         uniform vec2 u_canvasRes;
         //polygon color (0-1, 0-1, 0-1, 0-1)
         uniform vec4 u_polyColor;
+        //image bitmap
+        uniform sampler2D u_image;
+    
+        //image texture coordinate
+        varying vec2 v_texCoord;
 
         void main() {
-            vec2 normFrag = vec2(gl_FragCoord.xy / u_canvasRes);
+            vec2 normPos = gl_FragCoord.xy / u_canvasRes;
             float c = 0.0;
             ${rayLoop}
+            if(((u_firstPoint.y > normPos.y) != (u_lastPoint.y>normPos.y)) &&
+                (normPos.x < (u_lastPoint.x - u_firstPoint.x) * (normPos.y-u_firstPoint.y) / (u_lastPoint.y - u_firstPoint.y) + u_firstPoint.x)) {
+                c = c + 1.0;
+            }
             c = mod(c,2.0);
             gl_FragColor = vec4(c*u_polyColor);
         }
     `);
 }
-
-/*
-            vec2 normFrag = vec2(gl_FragCoord.xy / u_canvasRes);
-            float c = 0.0;
-            ${rayLoop}
-            c = mod(c,2.0);
-            gl_FragColor = vec4(c*u_polyColor);
-*/
-
-export const polygonFragmentSource = `
-    precision mediump float;
-
-    //how many points are present in the polygon
-    uniform int u_pointCount;
-    //array of *normalized* point positions
-    uniform vec2 u_points[200];
-    //canvas resolution (in pixels)
-    uniform vec2 u_canvasRes;
-    //polygon color (0-1, 0-1, 0-1, 0-1)
-    uniform vec4 u_polyColor;
-
-    void main() {
-        int i, j;
-        float c = 0.0;
-        vec2 normFrag = vec2(gl_FragCoord.xy / u_canvasRes);
-        for(i=0;i<5;i++) {
-            c += 1.0;
-        }
- }       if(mod(c,2.0) != 0.0) {
-            gl_FragColor = u_polyColor;
-        }
-        else {
-            gl_FragColor = vec4(0.0);
-        }
-    
-`
-
-/*
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    int pointCount = 5;
-    //float xPoints[5] = float[](0.0,200.0,300.0,200.0,200.0);
-    //float yPoints[5] = float[](0.0,0.0, 100.0,200.0,100.0);
-    
-    vec2 u_points[5] = vec2[](vec2(0.0,0.0),vec2(200.0,0.0),vec2(300.0,100.0),vec2(200.0,200.0),vec2(200.0,100.0));
-    
-    int i, j = 0;
-    float c = 0.0;
-
-    c = 0.0;
-    for(i=0, j=pointCount-1; i<pointCount; j=i++) {
-        if(((u_points[i].y > fragCoord.y) != (u_points[j].y>fragCoord.y)) &&
-            (fragCoord.x < (u_points[j].x - u_points[i].x) * (fragCoord.y-u_points[i].y) / (u_points[j].y - u_points[i].y) + u_points[i].x)) {
-                c = c + 1.0;
-        }
-    }
-    
-    if(mod(c,2.0) != 0.0) {
-        fragColor = vec4(0.0,0.0,0.0,1.0);
-    }
-    else {
-        fragColor = vec4(1.0);
-    }  
-}
-*/

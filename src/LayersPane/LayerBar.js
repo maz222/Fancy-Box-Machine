@@ -120,10 +120,18 @@ const StyledLayedPanel = styled.div`
     flex-direction:column;
     justify-content:space-between;
     align-items:center;
-    background-color:grey;
+    background-color:rgb(60,60,60);
+    border-radius:5px;
     padding:5px;
     width:200px;
-    height:calc(100% - 10px);
+    height:calc(100% - 50px);
+    margin:20px;
+
+    h2 {
+        text-align:center;
+        font-size:1.25em;
+        color:rgb(240,240,240);
+    }
 `;
 
 const ButtonContainer = styled.div`

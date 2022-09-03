@@ -7,13 +7,16 @@ const TopBar = styled.div`
     display:flex;
     justify-content:space-between;
     align-items:center;
-    background-color:rgb(60,60,60);
+    background-color:rgb(20,20,20);
+    padding-left: 7em;
 `;
 
 const TopBarButton = styled.button`
     margin:10px;
-    border:1px solid rgba(40,40,40);
     border-radius:4px;
+    color:rgb(170,170,170);
+    background-color:rgba(0,0,0,0);
+    border: 2px solid rgba(0,0,0,0);
     i {
         font-size:1.25em;
         padding:5px;
@@ -21,7 +24,9 @@ const TopBarButton = styled.button`
     }
     :hover {
         cursor:pointer;
-
+        background-color:rgb(10,10,10);
+        border:2px solid black;
+        color:white;
     }
 `;
 
@@ -52,8 +57,8 @@ function TopMenu(props) {
                 <TopBarButton onClick={() => {appContext.setZoom({amount:1,offset:[0,0]})}}><i class="fa-solid fa-maximize"></i></TopBarButton>
                 <TopBarButton onClick={() => {zoomToScreen()}}><i class="fa-solid fa-minimize"></i></TopBarButton>
             </div>
-            <div>
-                <TopBarButton>Get Script</TopBarButton>
+            <div style={{'marginRight':'2em'}}>
+                <TopBarButton><i class="fa-solid fa-download"></i></TopBarButton>
             </div>
         </TopBar>
     );

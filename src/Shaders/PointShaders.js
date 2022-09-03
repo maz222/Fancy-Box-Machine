@@ -23,7 +23,7 @@ import {printAttributes, createShader, createProgram, loadFloatAttrib, setRectan
             -width: the width of the line connecting the two points
             -glProgramKey: (string) key used to retrieve the approriate openGL program for rendering the line (in MainEditor.js) 
 */
-export function renderPointWithProgram(gl, glProgram, canvasData, pointNode) {
+export function renderPointWithProgram(gl, glProgram, canvasData, pointNode, pointRadius) {
     gl.useProgram(glProgram);
 
     const imageDimensions = [canvasData.image.width*canvasData.zoom, canvasData.image.height*canvasData.zoom];
@@ -41,7 +41,7 @@ export function renderPointWithProgram(gl, glProgram, canvasData, pointNode) {
     gl.uniform4f(colorLocation, pointNode.color[0]/255, pointNode.color[1]/255, pointNode.color[2]/255, 1.0);
     //point radius uniform
     const radiusLocation = gl.getUniformLocation(glProgram, "u_pointRadius");
-    gl.uniform1f(radiusLocation, pointNode.radius);
+    gl.uniform1f(radiusLocation, pointRadius);
     //canvas res uniform
     const canvasResLocation = gl.getUniformLocation(glProgram, "u_canvasRes");
     gl.uniform2f(canvasResLocation, canvasData.canvas.width, canvasData.canvas.height);
@@ -50,7 +50,7 @@ export function renderPointWithProgram(gl, glProgram, canvasData, pointNode) {
     gl.drawArrays(primitiveType, 0, 1);
 }
 
-export function renderPoints(gl, canvas, image, zoom, offset, layer, pointRadius=20) {
+export function renderPoints(gl, canvas, image, zoom, offset, layer, pointRadius) {
     const vertShader = createShader(gl, gl.VERTEX_SHADER, pointVertexSource, "points");
     const fragShader = createShader(gl, gl.FRAGMENT_SHADER, pointFragmentSource, "points");
     const program = createProgram(gl, vertShader, fragShader, "points");

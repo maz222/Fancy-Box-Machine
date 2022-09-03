@@ -23,6 +23,7 @@ const Wrapper = styled.div`
     justify-content:center;
     align-items:center;
     height:100%;
+    background-color:rgb(10,10,10);
 `;
 
 function MainEditor(props) {
@@ -51,7 +52,7 @@ function EditorCanvas(props) {
     const [shaderDict, setShaderDict] = React.useState(null);
     const [redrawCanvas, setRedrawCanvas] = React.useState(false);
 
-    const drawPoints = (context, gl, pointArray) => {
+    const drawPoints = (context, gl, pointArray, pointRadius) => {
         const canvasData = {
             canvas:canvasRef.current,
             image:context.image,
@@ -59,7 +60,7 @@ function EditorCanvas(props) {
             offset:context.zoom.offset,
         };
         for(var i in pointArray) {
-            renderPointWithProgram(gl,shaderDict[pointArray[i].glProgramKey],canvasData,pointArray[i]);
+            renderPointWithProgram(gl,shaderDict[pointArray[i].glProgramKey],canvasData,pointArray[i],pointRadius);
         }
     }
 
@@ -77,7 +78,7 @@ function EditorCanvas(props) {
         }
     }
 
-    const drawPoly = (context, gl, layer) => {
+    const drawPoly = (context, gl, layer, opactity) => {
         const canvasData = {
             canvas:canvasRef.current,
             image:context.image,
@@ -100,7 +101,7 @@ function EditorCanvas(props) {
             setShaderDict(tempDict);
             setRedrawCanvas(true);
         }
-        renderPolygonWithProgram(gl,shaderDict[layer.glProgramKey],canvasData,layer);
+        renderPolygonWithProgram(gl,shaderDict[layer.glProgramKey],canvasData,layer,opactity);
     }
 
     const renderCanvas = () => {
@@ -113,7 +114,7 @@ function EditorCanvas(props) {
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.blendEquation(gl.GL_FUNC_ADD);        
         gl.viewport(0,0,gl.canvas.width, gl.canvas.height);
-        gl.clearColor(0.0,0.0,0.0,1,0);
+        gl.clearColor(0.04,0.04,0.04,1,0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         //renderBackground(gl);
         renderImage(gl, canvas, appContext.image, appContext.zoom.amount, appContext.zoom.offset, appContext.contrast, appContext.brightness);
@@ -127,9 +128,11 @@ function EditorCanvas(props) {
                     clonedLayer = appContext.tool.checkLayerForRender(clonedLayer);
                     currPoints = clonedLayer.points;
                 }
-                drawPoints(appContext, gl, currPoints);
+                const pointRadius = appContext.currentLayer == l ? AppSettings.pointActiveRadius : AppSettings.pointInactiveRadius;
+                drawPoints(appContext, gl, currPoints, pointRadius);
                 drawLines(appContext, gl, currPoints);
-                drawPoly(appContext, gl, currLayer);
+                const opactity = appContext.currentLayer == l ? 0.7 : 0.25;
+                drawPoly(appContext, gl, currLayer, opactity);
             }
         }
         //console.log(appContext.layers);
@@ -168,7 +171,7 @@ function EditorCanvas(props) {
         if(frameImage != null && shaderDict != null) {
             setRedrawCanvas(true);
         }
-    },[appContext.layerManager, appContext.zoom, appContext.brightness, appContext.contrast, appContext.tool]);
+    },[appContext.layerManager, appContext.zoom, appContext.brightness, appContext.contrast, appContext.tool, appContext.currentLayer]);
 
     useEffect(() => {
         if(redrawCanvas) {renderCanvas();}

@@ -40,7 +40,7 @@ export class PointTool extends SmartCursorTool {
     }
     handleMouseDown(e, canvas, appContext) {
         super.handleMouseDown(e, canvas, appContext);
-        if(appContext.layerManager.layers.length == 0) {
+        if(appContext.layerManager.layers.length == 0 || appContext.layerManager.layers[appContext.currentLayer].polygon) {
             this.addNewLayer(appContext, this.normalizedCursor);
             return true;
         }
@@ -51,7 +51,6 @@ export class PointTool extends SmartCursorTool {
                 console.log("on point intersection");
                 currentLayer.closePolygon(overlappedPointIndex);
                 appContext.setLayerManager(appContext.layerManager.updateLayer(currentLayer.clone(),appContext.currentLayer));
-                this.addNewLayer(appContext);
                 return true;
             }
             return false;
@@ -65,7 +64,7 @@ export class PointTool extends SmartCursorTool {
                 currentLayer.closePolygon(lineIntersection.prevPointIndex);
                 //console.log(currentLayer.points);
                 appContext.setLayerManager(appContext.layerManager.updateLayer(currentLayer.clone(),appContext.currentLayer));
-                this.addNewLayer(appContext);
+                //this.addNewLayer(appContext);
                 return true;
             }
         }
@@ -75,7 +74,7 @@ export class PointTool extends SmartCursorTool {
         return true;
     }
     checkLayerForRender(layer) {
-        if(layer.points.length > 0) {
+        if(layer.points.length > 0 && !layer.polygon) {
             const color = layer.points[layer.points.length-1].color;
             layer.points.push(new PointNode(this.normalizedCursor,color));
             layer.points[layer.points.length-2].setNextNode(layer.points[layer.points.length-1].position,color);

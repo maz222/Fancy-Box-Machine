@@ -16,12 +16,14 @@ export const AppContext = React.createContext({})
 const ContextProvider = AppContext.Provider;
 
 const Banner = styled.div`
-  width:100%;
-  height:50px;
-  background-color:rgb(80,80,80);
+  width:calc(100% - 2em);
+  height:48px;
+  background-color:rgb(20,20,20);
+  border-bottom:2px solid black;
   display:flex;
-  justify-content:center;
   align-items:center;
+  color:rgb(240,240,240);
+  padding-left:2em;
 `;
 
 const Editor = styled.div`
@@ -30,6 +32,7 @@ const Editor = styled.div`
   display:flex;
   justify-content:space-between;
   align-items:center;
+  background-color:rgb(10,10,10);
 `
 
 const ContextContainer = (props) => {
@@ -56,6 +59,7 @@ const ContextContainer = (props) => {
     useEffect(() => {
         //console.log(layerManager.layers);
     }, [layerManager]);
+    //an index value
     const [currentLayer, setCurrentLayer] = useState(null);
     useEffect(() => {
         tool.reset();
