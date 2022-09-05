@@ -28,7 +28,7 @@ const ActiveButton = styled(InactiveButton)`
     border: 2px solid black;
 
     :hover{
-        color:#F4B942;
+        color:#F5A80D;
     }
 `;
 

@@ -32,7 +32,7 @@ function MainEditor(props) {
     return(
         <Wrapper ref={wrapperRef}>
             {appContext.image == null ? 
-                <input type="file" accept="image/*" onChange={(e) => appContext.setImage(e.target.files[0])}></input> : 
+                <input type="file" accept="image/*" onChange={(e) => appContext.setImage(e.target.files[0])} style={{color:'rgb(140,140,140)'}}></input> : 
                 <EditorCanvas wrapperRef={wrapperRef}/>
             }
         </Wrapper>

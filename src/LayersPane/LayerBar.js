@@ -12,7 +12,8 @@ const StyledLayer = styled.li`
     width:calc(100% - 4px);
     padding:6px 2px 6px 2px;
     align-items:center;
-    border-bottom:1px solid black;
+    border: 1px solid rgba(0,0,0,0);
+    color: rgb(200,200,200);
 
     .layerVisibility, .editLabel {
         display:flex;
@@ -20,10 +21,28 @@ const StyledLayer = styled.li`
         align-items:center;
     }
 
-    .layerColor, .layerVisibility, .editLabel {
+    .layerColor, .layerVisibility, .editLabel, .polyIcon {
         width: 25px;
         height: 25px;
         margin: 0 5px 0 5px;
+        background-color:rgba(0,0,0,0);
+        border:0;
+        color:rgb(200,200,200);
+    }
+
+    .polyIcon {
+        display:flex;
+        justify-content:center;
+        align-items:center;
+    }
+
+    .layerVisibility:hover, .editLabel:hover {
+        cursor:pointer;
+    }
+
+    .layerColor {
+        border-radius:2px;
+        margin-right: 10px;
     }
 
     .nameContainer {
@@ -48,18 +67,32 @@ const StyledLayer = styled.li`
         white-space:nowrap;
         width:100%;
     }
+
+    :hover {
+        background-color:rgb(40,40,40);
+        border:1px solid black;
+        color:white;
+    }
 `;
 
 const InactiveLayer = styled(StyledLayer)`  
-    background-color:rgb(100,100,100);
-
     .layerName {
         width:calc(100% - 35px * 2 - 5px);
     }
 `;
 
 const ActiveLayer = styled(StyledLayer)`
-    background-color:white;
+    background-color:rgb(20,20,20);
+    border:1px solid black;
+    color:#F5A80D;
+
+    .layerColor, .layerVisibility, .editLabel, .polyIcon {
+        color:#F5A80D;
+    }
+
+    :hover {
+        color:#F5A80D;
+    }
 `
 
 function Layer(props) {
@@ -104,13 +137,15 @@ function Layer(props) {
                 : <p className='layerName'>{props.name}</p>}
                 {props.suggestedName !== null && isFocused ? <p className="suggestedName">{props.suggestedName}</p> : null}  
             </div>          
+            {props.polygon ? <i class="fa-solid fa-draw-polygon polyIcon"></i> : null}       
             <button class="editLabel" onClick={() => {setIsFocused(true)}}><i class="fas fa-pen"></i></button>
         </ActiveLayer>
         :
         <InactiveLayer  onClick={() => {appContext.setCurrentLayer(props.index)}}>
             <button class="layerVisibility" onClick={toggleVisibility}>{visibility ? <i class="fas fa-eye"></i> : <i class="fas fa-eye-slash"></i>}</button>
             <div class="layerColor" style={{backgroundColor:color}}></div>
-            <p className='layerName'>{props.name}</p>        
+            <p className='layerName'>{props.name}</p>
+            {props.polygon ? <i class="fa-solid fa-draw-polygon polyIcon"></i> : null}       
         </InactiveLayer>
     );
 }
@@ -118,19 +153,40 @@ function Layer(props) {
 const StyledLayedPanel = styled.div`
     display:flex;
     flex-direction:column;
-    justify-content:space-between;
     align-items:center;
-    background-color:rgb(60,60,60);
+    background-color:rgb(40,40,40);
     border-radius:5px;
     padding:5px;
-    width:200px;
+    width:300px;
     height:calc(100% - 50px);
     margin:20px;
+    box-shadow:0px 0px 0px 1px rgba(255,255,255,.05) inset;
 
-    h2 {
-        text-align:center;
-        font-size:1.25em;
-        color:rgb(240,240,240);
+    #header {
+        width:calc(100% - 40px);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:10px 20px 10px 20px;
+        border-bottom: 2px solid rgb(20,20,20);
+
+        h2 {
+            font-size:1.25em;
+            color:rgb(200,200,200);
+            margin:0;
+        }
+    }
+
+    #layersContainer {
+        margin: 5px 10px 5px 10px;
+        overflow-y:scroll;
+        flex-grow:1;
+        width:calc(100% - 20px);
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+    #layersContainer::-webkit-scrollbar {
+        display:none;
     }
 `;
 
@@ -139,8 +195,25 @@ const ButtonContainer = styled.div`
     grid-template-columns: 1fr 1fr;
     grid-gap:5px;
     width:100%;
-    height:30px;
     margin: 10px 0 10px 0;
+    padding-top:15px;
+    border-top:2px solid rgb(20,20,20);
+
+    button {
+        flex-grow:1;
+        background-color:rgba(0,0,0,0);
+        border:2px solid rgba(0,0,0,0);
+        color:rgb(200,200,200);
+        border-radius:5px;
+        padding: 10px;
+    }
+    
+    button:hover {
+        background-color:rgb(10,10,10);
+        border:2px solid black;
+        cursor:pointer;
+        color:white;
+    }
 `;
 
 function LayerBar() {
@@ -188,16 +261,15 @@ function LayerBar() {
 
     return(
         <StyledLayedPanel>
-            <div style={{width:'100%'}}>
+            <div id="header">
                 <h2>Layers</h2>
+            </div>
+            <div id="layersContainer">
                 <DragDropContext onDragEnd={(result) => {
                         if(!result.destination) {return}
                         reorderLayers(result.source.index, result.destination.index);
                     }}
                     onDragStart = {() => {      
-                        console.log(newName);
-                        console.log(appContext.layerManager);
-                        console.log("---");  
                         if(newName !== null && newName.length > 0) {
                             appContext.layerManager.layers[oldLayer].name = newName;
                             appContext.setLayerManager(appContext.layerManager.clone());
@@ -215,7 +287,7 @@ function LayerBar() {
                                         <Draggable key={"layer" + index} draggableId={"layer" + index} index={index}>
                                             {(provided) => (
                                                 <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                                                    <Layer appContext={appContext} index={index} suggestedName={suggestedName} 
+                                                    <Layer appContext={appContext} index={index} suggestedName={suggestedName} polygon={layer.polygon}
                                                     name={index == appContext.currentLayer ? (newName === null ? layer.name : newName) : layer.name} nameCallback={(text) => {updateName(text)}}
                                                     />
                                                 </div>

@@ -35,6 +35,9 @@ function TopMenu(props) {
 
     const zoomToScreen = () => {
         var frameImage = appContext.image;
+        if(!frameImage) {
+            return;
+        }
         var canvasWidth = appContext.canvasSize[0];
         var canvasHeight = appContext.canvasSize[1];
         const widthDiff = canvasWidth - frameImage.width;
@@ -58,7 +61,7 @@ function TopMenu(props) {
                 <TopBarButton onClick={() => {zoomToScreen()}}><i class="fa-solid fa-minimize"></i></TopBarButton>
             </div>
             <div style={{'marginRight':'2em'}}>
-                <TopBarButton><i class="fa-solid fa-download"></i></TopBarButton>
+                <TopBarButton onClick={(e) => {appContext.setExporting(true)}}><i class="fa-solid fa-download"></i></TopBarButton>
             </div>
         </TopBar>
     );

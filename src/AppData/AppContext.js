@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Tool from '../Tools/Tools';
 import styled from "styled-components";
 
+import ExportMenu from '../ExportMenu/ExportMenu.js';
 import TopMenu from '../TopBar/TopBar.js';
 import ToolBar from '../Tools/ToolBar.js';
 import LayerBar from '../LayersPane/LayerBar';
@@ -67,6 +68,7 @@ const ContextContainer = (props) => {
     const [tool, setTool] = useState(new Tool(AppContext));
     const [image, setImage] = useState(null);
     const [canvasSize, setCanvasSize] = useState(null);
+    const [exporting, setExporting] = useState(true);
 
     var startingTrie = new LabelTrie();
     startingTrie.addLabel("large truck", 10);
@@ -81,7 +83,7 @@ const ContextContainer = (props) => {
 
     const [debugText, setDebugText] = useState(["testing"]);
     return(
-        <div style={{width:"100%",height:"100%"}}>
+        <div style={{width:"100%",height:"100%",position:"relative"}}>
             <ContextProvider value={{
                 zoom:zoom,setZoom:setZoom,
                 contrast:contrast,setContrast:setContrast,
@@ -92,8 +94,10 @@ const ContextContainer = (props) => {
                 currentLayer:currentLayer, setCurrentLayer:setCurrentLayer,
                 tool:tool,setTool:setTool,
                 debugText:debugText,setDebugText:setDebugText,
-                labelTrie:labelTrie,setLabelTrie:setLabelTrie
+                labelTrie:labelTrie,setLabelTrie:setLabelTrie,
+                exporting:exporting,setExporting:setExporting
             }}>
+                {exporting ? <ExportMenu /> : null}
                 {debugText.length > 0 ? <DebugConsole debugText={debugText} setDebugText={setDebugText} /> : null}
                 <Banner>Box Buddy</Banner>
                 <TopMenu />

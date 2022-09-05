@@ -31,6 +31,11 @@ export class DebugPositionTool extends SmartCursorTool {
         debugStrings.push(`Raw From Normalized: [${rawPos.x},${rawPos.y}]`);
         debugStrings.push("------");
         const currLayer = appContext.layerManager.layers[appContext.currentLayer];
+        if(!currLayer || currLayer.points.length === 0) {
+            console.log(debugStrings);
+            appContext.setDebugText(debugStrings);
+            return;
+        }
         const pointIndex = this.checkForOverlap(this.normalizedCursor, currLayer, canvas, appContext);
         if(pointIndex !== null) {
             const point = appContext.layerManager.layers[appContext.currentLayer].points[pointIndex];
