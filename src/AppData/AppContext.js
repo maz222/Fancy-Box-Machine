@@ -68,7 +68,7 @@ const ContextContainer = (props) => {
     const [tool, setTool] = useState(new Tool(AppContext));
     const [image, setImage] = useState(null);
     const [canvasSize, setCanvasSize] = useState(null);
-    const [exporting, setExporting] = useState(true);
+    const [exporting, setExporting] = useState(false);
 
     var startingTrie = new LabelTrie();
     startingTrie.addLabel("large truck", 10);
@@ -81,7 +81,7 @@ const ContextContainer = (props) => {
     const [labelTrie, setLabelTrie] = useState(startingTrie);
 
 
-    const [debugText, setDebugText] = useState(["testing"]);
+    const [debugText, setDebugText] = useState([]);
     return(
         <div style={{width:"100%",height:"100%",position:"relative"}}>
             <ContextProvider value={{

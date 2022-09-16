@@ -1,7 +1,7 @@
 import { loadFloatAttrib } from "./WebGLUtilities";
 
 //gets a set of 6 points - two triangles that make up the outermost rectangle of the polygon
-function getRect(points) {
+export function getRect(points) {
     var top = points[0].y;
     var bottom = points[0].y;
     var left = points[0].x;
@@ -39,7 +39,7 @@ function getRect(points) {
     ]);
 }
 
-function flattenPoints(points) {
+export function flattenPoints(points) {
     var out = [];
     points.forEach((point,index) => {
         out.push(point.x);
@@ -82,7 +82,6 @@ export function renderPolygonWithProgram(gl, glProgram, canvasData, layer, opact
     gl.uniform2f(lastPointLocation, parsedPoints[parsedPoints.length-1].x, 1.0 - parsedPoints[parsedPoints.length-1].y);
     //load line color
     const polygonColorLocation = gl.getUniformLocation(glProgram, "u_polyColor");
-    console.log(opactity);
     gl.uniform4f(polygonColorLocation, layer.color[0]/255, layer.color[1]/255, layer.color[2]/255, opactity ? opactity : 1.0);
 
     //draw the rectangle.
@@ -136,11 +135,6 @@ export function getPolygonFragmentSource(maxPointCount) {
         uniform vec2 u_canvasRes;
         //polygon color (0-1, 0-1, 0-1, 0-1)
         uniform vec4 u_polyColor;
-        //image bitmap
-        uniform sampler2D u_image;
-    
-        //image texture coordinate
-        varying vec2 v_texCoord;
 
         void main() {
             vec2 normPos = gl_FragCoord.xy / u_canvasRes;

@@ -4,6 +4,10 @@ import styled from "styled-components";
 //import {AppContext} from '../AppContextProvider.js';
 import { AppContext } from '../AppData/AppContext';
 
+import ExportPane from './ExportCanvas';
+
+import {saveAs} from 'file-saver';
+
 const Container = styled.div`
     display:flex;
     justify-content:center;
@@ -30,11 +34,16 @@ const MenuPane = styled.div`
 
 const MenuHeader = styled.div`
     display:flex;
-    justify-content: space-between;
-    align-items:center;
+    flex-direction:column;
     border-bottom: 2px solid rgb(20,20,20);
     padding-bottom:20px;
     color:rgb(200,200,200);
+
+    div {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
 
     button {
         background-color:rgba(0,0,0,0);
@@ -56,6 +65,16 @@ const MenuHeader = styled.div`
     h2 {
         margin:0;
     }
+
+    p {
+        margin: 0;
+    }
+    .red {
+        color:#B0031A;
+    }
+    .green {
+        color:#00B025
+    }
 `;
 
 const MenuBody = styled.div`
@@ -65,7 +84,7 @@ const MenuBody = styled.div`
     #optionsGrid {
         display: grid;
         grid-template-columns:1fr 1fr;
-        grid-template-rows:1fr 1fr;
+        grid-template-rows:1fr;
         width:80%;
         height:100%
     }
@@ -145,29 +164,74 @@ function CustomCheckbox(props) {
     );
 }
 
+function parseLayers(layers) {
+    var tempData = {points:[],images:[]}
+    layers.forEach((layer,index) => {
+        if(layer.polygon) {
+            var parsedPoints = [];
+            layer.points.forEach((point,index) => {
+                parsedPoints.push([point.position.x,point.position.y]);
+            })
+            var parsedPoints = {name:layer.name,points:parsedPoints,'z-Index':index};
+            var parsedImage = {name:layer.name,image:null};
+            tempData.points.push(parsedPoints);
+            tempData.images.push(parsedImage);
+        }
+    });
+    return tempData;
+}
+
+function cropPoints(parsedPoints) {
+    var top = parsedPoints[0][1];
+    var left = parsedPoints[0][0];
+    parsedPoints.forEach((point,index) => {
+        top = Math.min(point[1],top);
+        left = Math.min(point[0],left);
+    })
+    for(var i=0; i<parsedPoints.length; i++) {
+        parsedPoints[0] -= left;
+        parsedPoints[1] -= top;
+    }
+}
+
+function exportData(layers,cropImages,omitOverlap) {
+    var parsedData = parseLayers(layers);
+    if(cropImages) {
+        parsedData.points.forEach((points) => {
+            cropPoints(points);
+        })
+    }
+    var dataBlob = new Blob([JSON.stringify(parsedData.points)], {type: "application/json"});
+    saveAs(dataBlob,"labelData.json");
+}
+
 export default function ExportMenu(props) {
     const appContext = useContext(AppContext);
 
-    const [exportImages,setExportImages] = useState(true);
-    const [exportPoints,setExportPoints] = useState(true);
     const [cropImages,setCropImages] = useState(true);
     const [omitOverlap, setOmitOverlap] = useState(true);
 
+    var numCompletedLayers = 0;
+    appContext.layerManager.layers.forEach((layer,index) => {
+        if(layer.polygon) {
+            numCompletedLayers++;
+        }
+    });
+    const incompleteLayers = appContext.layerManager.layers.length - numCompletedLayers;
+
     return(
         <Container>
+            <ExportPane/>
             <MenuPane>
                 <MenuHeader>
-                    <h2>Export Layer</h2>
-                    <button  onClick={(e) => {appContext.setExporting(false)}}><i class="fa-regular fa-circle-xmark"></i></button>
+                    <div>
+                        <h2>Export Layers</h2>
+                        <button  onClick={(e) => {appContext.setExporting(false)}}><i class="fa-regular fa-circle-xmark"></i></button>
+                    </div>
+                    {incompleteLayers > 0 ? <p className="red">{incompleteLayers} incomplete layer(s)!</p> : <p className="green">{numCompletedLayers} layer(s)</p>}
                 </MenuHeader>
                 <MenuBody>
                     <div id="optionsGrid">
-                        <div className="optionCell">
-                            <CustomCheckbox checked={exportImages} callback={setExportImages} labelText={"Export images"}/>
-                        </div>
-                        <div className="optionCell">
-                            <CustomCheckbox checked={exportPoints} callback={setExportPoints} labelText={"Export point list"}/>
-                        </div>
                         <div className="optionCell">
                             <CustomCheckbox checked={cropImages} callback={setCropImages} labelText={"Crop images to polygons"}/>
                         </div>
@@ -177,7 +241,7 @@ export default function ExportMenu(props) {
                     </div>
                 </MenuBody>
                 <MenuBottom>
-                    <button><i class="fa-solid fa-download"></i></button>
+                    <button onClick={(e) => {exportData(appContext.layerManager.layers)}}><i class="fa-solid fa-download"></i></button>
                 </MenuBottom>
             </MenuPane>
         </Container>
