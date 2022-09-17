@@ -6,7 +6,8 @@ import { AppContext } from '../AppData/AppContext';
 
 import ExportPane from './ExportCanvas';
 
-import {saveAs} from 'file-saver';
+import {exportData} from './ExportUtilities.js';
+
 
 const Container = styled.div`
     display:flex;
@@ -164,52 +165,12 @@ function CustomCheckbox(props) {
     );
 }
 
-function parseLayers(layers) {
-    var tempData = {points:[],images:[]}
-    layers.forEach((layer,index) => {
-        if(layer.polygon) {
-            var parsedPoints = [];
-            layer.points.forEach((point,index) => {
-                parsedPoints.push([point.position.x,point.position.y]);
-            })
-            var parsedPoints = {name:layer.name,points:parsedPoints,'z-Index':index};
-            var parsedImage = {name:layer.name,image:null};
-            tempData.points.push(parsedPoints);
-            tempData.images.push(parsedImage);
-        }
-    });
-    return tempData;
-}
-
-function cropPoints(parsedPoints) {
-    var top = parsedPoints[0][1];
-    var left = parsedPoints[0][0];
-    parsedPoints.forEach((point,index) => {
-        top = Math.min(point[1],top);
-        left = Math.min(point[0],left);
-    })
-    for(var i=0; i<parsedPoints.length; i++) {
-        parsedPoints[0] -= left;
-        parsedPoints[1] -= top;
-    }
-}
-
-function exportData(layers,cropImages,omitOverlap) {
-    var parsedData = parseLayers(layers);
-    if(cropImages) {
-        parsedData.points.forEach((points) => {
-            cropPoints(points);
-        })
-    }
-    var dataBlob = new Blob([JSON.stringify(parsedData.points)], {type: "application/json"});
-    saveAs(dataBlob,"labelData.json");
-}
-
 export default function ExportMenu(props) {
     const appContext = useContext(AppContext);
 
     const [cropImages,setCropImages] = useState(true);
     const [omitOverlap, setOmitOverlap] = useState(true);
+    const [imageBlobs, setImageBlobs] = useState([]);
 
     var numCompletedLayers = 0;
     appContext.layerManager.layers.forEach((layer,index) => {
@@ -219,9 +180,13 @@ export default function ExportMenu(props) {
     });
     const incompleteLayers = appContext.layerManager.layers.length - numCompletedLayers;
 
+    useEffect(() => {
+        console.log(imageBlobs);
+    },[imageBlobs])
+
     return(
         <Container>
-            <ExportPane/>
+            <ExportPane exportImagesCallback={setImageBlobs}/>
             <MenuPane>
                 <MenuHeader>
                     <div>
@@ -241,7 +206,7 @@ export default function ExportMenu(props) {
                     </div>
                 </MenuBody>
                 <MenuBottom>
-                    <button onClick={(e) => {exportData(appContext.layerManager.layers)}}><i class="fa-solid fa-download"></i></button>
+                    <button onClick={(e) => {exportData(appContext.layerManager.layers, imageBlobs)}}><i class="fa-solid fa-download"></i></button>
                 </MenuBottom>
             </MenuPane>
         </Container>

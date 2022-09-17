@@ -20,15 +20,13 @@ export default function ExportPane(props) {
         //width:400+"px",
         position:"absolute",
         top:"20px",
-        left:"20px"
+        left:`-${appContext.image.width}px`,
+        display:'none'
     };
-
-    console.log([wrapperStyle.width,wrapperStyle.height]);
-    console.log("**");
 
     return(
         <div ref={wrapperRef} style={wrapperStyle}>
-            <EditorCanvas width={wrapperStyle.width} height={wrapperStyle.height}/>
+            <EditorCanvas width={wrapperStyle.width} height={wrapperStyle.height} exportImages={props.exportImagesCallback}/>
         </div>
     );
 }
@@ -36,14 +34,11 @@ export default function ExportPane(props) {
 function EditorCanvas(props) {
     const appContext = useContext(AppContext);
     const canvasRef = React.useRef(null);
-    const [frameImage, setFrameImage] = React.useState(null);
     const [shaderDict, setShaderDict] = React.useState(null);
-    const [redrawCanvas, setRedrawCanvas] = React.useState(false);
 
-    const [canvasBlobs, setCanvasBlobs] = React.useState({blobs:[]});
-    const [layersToRender, setLayersToRender] = React.useState(0);
+    const [canvasBlobs, setCanvasBlobs] = React.useState([]);
     
-    const renderCanvas = (layerIndex) => {
+    const renderLayer = (layerIndex) => {
         const canvas = canvasRef.current;
         const gl = canvas.getContext("webgl2");
         gl.enable(gl.BLEND);
@@ -58,12 +53,23 @@ function EditorCanvas(props) {
             image:AppContext.image,
         };
         renderExportLayerWithProgram(gl, shaderDict.export, canvasData, appContext.layerManager.layers[layerIndex], appContext.image);
-        setRedrawCanvas(false);
+        canvas.toBlob((canvasBlob) => {
+            setCanvasBlobs(canvasBlobs.concat([canvasBlob]));
+        })
     }
 
     useEffect(() => {
+        if(shaderDict && canvasBlobs.length < appContext.layerManager.layers.length) {
+            renderLayer(canvasBlobs.length);
+        }
+        if(canvasBlobs.length == appContext.layerManager.layers.length) {
+            props.exportImages(canvasBlobs);
+        }
+    },[canvasBlobs])
+
+    useEffect(() => {
         if(shaderDict) {
-            setRedrawCanvas(true);
+            renderLayer(0);
         }
     },[shaderDict])
 
@@ -89,26 +95,10 @@ function EditorCanvas(props) {
             temp[shaderList[i].name] = program;
         }
         setShaderDict(temp);
-        //setRedrawCanvas(true);
     },[canvasRef])
 
-    useEffect(() => {
-        if(redrawCanvas) {
-            renderCanvas(0);
-        }
-    },[redrawCanvas])
-
-    console.log([props.width,props.height]);
-    console.log(props);
-    console.log("---")
     return(
         <canvas id="exportCanvas" style={{width:props.width,height:props.height}} width={props.width} height={props.height} ref={canvasRef}/>
     );
     
-
-    /*
-    return(
-        <canvas id="exportCanvas" style={{width:"400px",height:"1000px"}} width={"400px"} height={"1000px"} ref={canvasRef}/>
-    );
-    */
 }
